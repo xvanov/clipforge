@@ -77,13 +77,27 @@ const createTimelineStore = () => {
           updates,
         });
 
-        update((state) => ({
-          ...state,
-          tracks: state.tracks.map((track) => ({
-            ...track,
-            clips: track.clips.map((clip) => (clip.id === clipId ? updatedClip : clip)),
-          })),
-        }));
+        update((state) => {
+          // Find the track containing this clip and only update that track
+          const trackIndex = state.tracks.findIndex((track) =>
+            track.clips.some((clip) => clip.id === clipId)
+          );
+
+          if (trackIndex === -1) return state;
+
+          const updatedTracks = [...state.tracks];
+          updatedTracks[trackIndex] = {
+            ...updatedTracks[trackIndex],
+            clips: updatedTracks[trackIndex].clips.map((clip) =>
+              clip.id === clipId ? updatedClip : clip
+            ),
+          };
+
+          return {
+            ...state,
+            tracks: updatedTracks,
+          };
+        });
 
         return updatedClip;
       } catch (error) {
@@ -144,24 +158,19 @@ const createTimelineStore = () => {
     // Create new track
     createTrack: async (name: string, trackType: 'main' | 'overlay') => {
       try {
-        console.log('timeline.ts: Creating track:', name, trackType);
         const track = await invoke<Track>('create_track', {
           name,
           trackType,
         });
-        console.log('timeline.ts: Track created by backend:', track);
 
         update((state) => {
-          console.log('timeline.ts: Current state before adding track:', state);
           const newState = {
             ...state,
             tracks: [...state.tracks, track],
           };
-          console.log('timeline.ts: New state after adding track:', newState);
           return newState;
         });
 
-        console.log('timeline.ts: Track added to store successfully');
         return track;
       } catch (error) {
         console.error('Failed to create track:', error);

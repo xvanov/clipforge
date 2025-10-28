@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import { invoke } from '@tauri-apps/api';
   import { convertFileSrc } from '@tauri-apps/api/tauri';
   import type { MediaClip } from '$lib/types/clip';
 
   export let currentClip: MediaClip | null = null;
   export let currentTime: number = 0;
-
-  const dispatch = createEventDispatcher();
 
   let videoElement: HTMLVideoElement;
   let isPlaying = false;
@@ -16,11 +13,15 @@
   let volume = 1.0;
   let playbackError = '';
   let isLoadingProxy = false;
-  let isSeeking = false;
 
-  // Sync external currentTime prop with video element (but don't interfere during normal playback)
-  $: if (videoElement && !isPlaying && Math.abs(currentTime - localTime) > 0.1) {
-    videoElement.currentTime = currentTime;
+  // Sync external currentTime prop with video element
+  // Update video when timeline scrubs, but avoid interference during playback
+  $: if (videoElement && !isPlaying) {
+    const timeDiff = Math.abs(currentTime - localTime);
+    // Only update if there's a significant difference (>0.1s) to avoid jitter
+    if (timeDiff > 0.1) {
+      videoElement.currentTime = currentTime;
+    }
   }
 
   // T037: Load clip for playback

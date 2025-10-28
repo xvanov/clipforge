@@ -2,6 +2,8 @@ use crate::commands::media::AppState;
 use crate::models::timeline::{TimelineClip, Track, TrackType};
 use tauri::State;
 
+// TODO: This struct is used by update_timeline_clip which is not yet fully implemented
+#[allow(dead_code)]
 #[derive(serde::Deserialize)]
 pub struct TimelineClipUpdates {
     pub start_time: Option<f64>,
@@ -26,8 +28,11 @@ pub async fn add_clip_to_timeline(
     out_point: f64,
     state: State<'_, AppState>,
 ) -> Result<TimelineClip, String> {
-    println!("add_clip_to_timeline called: media_clip={}, track={}, start={}", media_clip_id, track_id, start_time);
-    
+    println!(
+        "add_clip_to_timeline called: media_clip={}, track={}, start={}",
+        media_clip_id, track_id, start_time
+    );
+
     // Validate inputs
     if in_point >= out_point {
         return Err("in_point must be less than out_point".to_string());
@@ -35,14 +40,17 @@ pub async fn add_clip_to_timeline(
     if start_time < 0.0 {
         return Err("start_time must be non-negative".to_string());
     }
-    
+
     // Check if media clip exists
-    let media_library = state.media_library.lock().unwrap();
+    let media_library = state
+        .media_library
+        .lock()
+        .expect("Failed to acquire lock on media library");
     if !media_library.iter().any(|c| c.id == media_clip_id) {
         return Err(format!("Media clip not found: {}", media_clip_id));
     }
     drop(media_library);
-    
+
     // Create timeline clip
     let timeline_clip = TimelineClip::new(
         media_clip_id,
@@ -51,20 +59,25 @@ pub async fn add_clip_to_timeline(
         in_point,
         out_point,
     );
-    
+
     println!("Created timeline clip: {:?}", timeline_clip);
-    
+
     // Store in project state
-    let mut project_lock = state.project.lock().unwrap();
+    let mut project_lock = state
+        .project
+        .lock()
+        .expect("Failed to acquire lock on project");
     if let Some(ref mut project) = *project_lock {
         // Find the track and add the clip
-        let track_found = project.tracks.iter_mut()
+        let track_found = project
+            .tracks
+            .iter_mut()
             .find(|t| t.id == track_id)
             .map(|track| {
                 track.clips.push(timeline_clip.clone());
                 track.clips.len()
             });
-        
+
         if let Some(clip_count) = track_found {
             project.mark_modified();
             println!("Added clip to track. Track now has {} clips", clip_count);
@@ -74,7 +87,7 @@ pub async fn add_clip_to_timeline(
     } else {
         return Err("No project loaded".to_string());
     }
-    
+
     Ok(timeline_clip)
 }
 
@@ -99,7 +112,10 @@ pub async fn split_timeline_clip(
 ) -> Result<SplitResult, String> {
     // TODO: Implement split logic with project state
     // For now, return error
-    Err(format!("Not fully implemented yet: {} at {}", clip_id, split_time))
+    Err(format!(
+        "Not fully implemented yet: {} at {}",
+        clip_id, split_time
+    ))
 }
 
 /// T051: Delete timeline clip
@@ -121,24 +137,30 @@ pub async fn create_track(
     state: State<'_, AppState>,
 ) -> Result<Track, String> {
     println!("create_track called: name={}, type={}", name, track_type);
-    
+
     // Parse track type
     let parsed_type = match track_type.to_lowercase().as_str() {
         "main" => TrackType::Main,
         "overlay" => TrackType::Overlay,
         _ => return Err(format!("Invalid track type: {}", track_type)),
     };
-    
+
     // Create track
     let mut track = Track::new(name, parsed_type);
-    
+
     // Store in project state
-    let mut project_lock = state.project.lock().unwrap();
+    let mut project_lock = state
+        .project
+        .lock()
+        .expect("Failed to acquire lock on project");
     if let Some(ref mut project) = *project_lock {
         track.order = project.tracks.len() as u32;
         project.tracks.push(track.clone());
         project.mark_modified();
-        println!("Added track. Project now has {} tracks", project.tracks.len());
+        println!(
+            "Added track. Project now has {} tracks",
+            project.tracks.len()
+        );
     } else {
         // Create a new project if none exists
         use crate::models::project::Project;
@@ -148,6 +170,6 @@ pub async fn create_track(
         *project_lock = Some(new_project);
         println!("Created new project with 1 track");
     }
-    
+
     Ok(track)
 }

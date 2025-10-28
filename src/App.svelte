@@ -43,10 +43,7 @@
 
     <section class="main-area">
       <div class="preview-section">
-        <VideoPreview 
-          currentTime={0}
-          on:timeupdate={handleTimeUpdate}
-        />
+        <VideoPreview currentTime={videoCurrentTime} on:timeupdate={handleTimeUpdate} />
       </div>
 
       <div class="timeline-section">

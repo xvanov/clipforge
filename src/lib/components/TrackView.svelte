@@ -2,54 +2,49 @@
   import { createEventDispatcher } from 'svelte';
   import TimelineClipView from './TimelineClipView.svelte';
   import type { Track } from '../types/timeline';
-  
+
   export let track: Track;
   export let pixelsPerSecond: number = 50;
   export let scrollLeft: number = 0;
   export let currentTime: number = 0;
-  
+
   const dispatch = createEventDispatcher();
-  
+
   let trackElement: HTMLDivElement;
   let isDraggingClip: boolean = false;
   let draggedClipId: string | null = null;
-  
+
   function handleClipDragStart(event: CustomEvent) {
     isDraggingClip = true;
     draggedClipId = event.detail.clipId;
   }
-  
+
   function handleClipDragEnd() {
     isDraggingClip = false;
     draggedClipId = null;
   }
-  
+
   function handleClipDrag(event: CustomEvent) {
     if (!isDraggingClip || !draggedClipId) return;
-    
+
     const newStartTime = event.detail.startTime;
     dispatch('clip-moved', {
       clipId: draggedClipId,
       newStartTime,
-      trackId: track.id
+      trackId: track.id,
     });
   }
-  
+
   function handleClipTrimmed(event: CustomEvent) {
     dispatch('clip-trimmed', event.detail);
   }
-  
+
   function handleClipSplit(event: CustomEvent) {
     dispatch('clip-split', event.detail);
   }
-  
+
   function handleClipDeleted(event: CustomEvent) {
     dispatch('clip-deleted', event.detail);
-  }
-  
-  // Debug logging
-  $: {
-    console.log(`TrackView for track ${track.name} has ${track.clips.length} clips:`, track.clips);
   }
 </script>
 
@@ -57,28 +52,32 @@
   <div class="track-header">
     <div class="track-name">{track.name}</div>
     <div class="track-controls">
-      <button 
-        class="track-visibility" 
+      <!-- TODO: Wire up visibility toggle to update track.visible via store -->
+      <button
+        class="track-visibility"
         class:visible={track.visible}
         title={track.visible ? 'Hide track' : 'Show track'}
+        on:click={() => console.warn('Track visibility toggle not yet implemented')}
       >
         {track.visible ? '👁️' : '👁️‍🗨️'}
       </button>
-      <button 
-        class="track-lock" 
+      <!-- TODO: Wire up lock toggle to update track.locked via store -->
+      <button
+        class="track-lock"
         class:locked={track.locked}
         title={track.locked ? 'Unlock track' : 'Lock track'}
+        on:click={() => console.warn('Track lock toggle not yet implemented')}
       >
         {track.locked ? '🔒' : '🔓'}
       </button>
     </div>
   </div>
-  
+
   <div class="track-content">
     <div class="track-clips" style="position: relative; height: 100%;">
-      {#each track.clips as clip (clip.id)}
+      {#each track.clips as timelineClip (timelineClip.id)}
         <TimelineClipView
-          {clip}
+          clip={timelineClip}
           {pixelsPerSecond}
           {scrollLeft}
           {currentTime}
@@ -102,7 +101,7 @@
     display: flex;
     background: #0a0a0a;
   }
-  
+
   .track-header {
     width: 150px;
     background: #1a1a1a;
@@ -112,18 +111,18 @@
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .track-name {
     font-size: 14px;
     font-weight: 500;
     color: #fff;
   }
-  
+
   .track-controls {
     display: flex;
     gap: 4px;
   }
-  
+
   .track-controls button {
     width: 28px;
     height: 28px;
@@ -136,28 +135,27 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   .track-controls button:hover {
     background: #3a3a3a;
   }
-  
+
   .track-visibility.visible {
     background: #2a4a2a;
   }
-  
+
   .track-lock.locked {
     background: #4a2a2a;
   }
-  
+
   .track-content {
     flex: 1;
     position: relative;
     overflow: hidden;
   }
-  
+
   .track-clips {
     width: 100%;
     height: 100%;
   }
 </style>
-

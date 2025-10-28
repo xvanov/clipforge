@@ -46,7 +46,7 @@ export class ClipRenderer {
       this.ctx.font = '12px sans-serif';
       this.ctx.textAlign = 'left';
       this.ctx.textBaseline = 'top';
-      
+
       const clipName = clip.id.substring(0, 8) + '...';
       this.ctx.fillText(clipName, x + 8, y + 8);
 
@@ -124,10 +124,17 @@ export class ClipRenderer {
     const y = trackY + 10;
     const height = trackHeight - 20;
 
+    // Prevent division by zero
+    if (width === 0 || height === 0) {
+      this.ctx.restore();
+      return;
+    }
+
     // Apply transformations
     const centerX = x + width / 2;
     const centerY = y + height / 2;
 
+    // TODO: Apply transform.x and transform.y for position offset when implementing multi-track overlays
     this.ctx.translate(centerX, centerY);
     this.ctx.rotate((transform.rotation * Math.PI) / 180);
     this.ctx.scale(transform.width / width, transform.height / height);
@@ -140,4 +147,3 @@ export class ClipRenderer {
     this.ctx.restore();
   }
 }
-

@@ -176,10 +176,12 @@ describe('Timeline Store', () => {
     // Add track and clip
     timelineStore.update((state) => ({
       ...state,
-      tracks: [{
-        ...mockTrack,
-        clips: [mockClip],
-      }],
+      tracks: [
+        {
+          ...mockTrack,
+          clips: [mockClip],
+        },
+      ],
     }));
 
     expect(get(tracks)[0].clips).toHaveLength(1);
@@ -232,10 +234,12 @@ describe('Timeline Store', () => {
 
     timelineStore.update((state) => ({
       ...state,
-      tracks: [{
-        ...mockTrack,
-        clips: [mockClip1, mockClip2],
-      }],
+      tracks: [
+        {
+          ...mockTrack,
+          clips: [mockClip1, mockClip2],
+        },
+      ],
     }));
 
     const duration = get(timelineDuration);

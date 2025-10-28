@@ -2,6 +2,10 @@ import type { Track } from '../types/timeline';
 import { ClipRenderer } from './clip-renderer';
 import { PlayheadRenderer } from './playhead-renderer';
 
+// Constants for timeline dimensions
+const RULER_HEIGHT = 30;
+const TRACK_HEIGHT = 80;
+
 export class TimelineRenderer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -94,22 +98,17 @@ export class TimelineRenderer {
   /**
    * Draw time ruler with markers
    */
-  private drawTimeRuler(
-    currentTime: number,
-    pixelsPerSecond: number,
-    scrollLeft: number
-  ): void {
+  private drawTimeRuler(currentTime: number, pixelsPerSecond: number, scrollLeft: number): void {
     this.ctx.strokeStyle = '#444';
     this.ctx.fillStyle = '#999';
     this.ctx.font = '10px sans-serif';
 
-    const rulerHeight = 30;
     const startTime = scrollLeft / pixelsPerSecond;
     const endTime = (scrollLeft + this.canvas.width) / pixelsPerSecond;
 
     // Draw ruler background
     this.ctx.fillStyle = '#1a1a1a';
-    this.ctx.fillRect(0, 0, this.canvas.width, rulerHeight);
+    this.ctx.fillRect(0, 0, this.canvas.width, RULER_HEIGHT);
 
     // Draw time markers
     const majorInterval = this.calculateMajorInterval(pixelsPerSecond);
@@ -118,25 +117,33 @@ export class TimelineRenderer {
     this.ctx.strokeStyle = '#444';
     this.ctx.fillStyle = '#999';
 
-    for (let t = Math.floor(startTime / minorInterval) * minorInterval; t <= endTime; t += minorInterval) {
+    for (
+      let t = Math.floor(startTime / minorInterval) * minorInterval;
+      t <= endTime;
+      t += minorInterval
+    ) {
       const x = t * pixelsPerSecond - scrollLeft;
 
       if (Math.abs(t % majorInterval) < 0.001) {
         // Major marker
         this.ctx.beginPath();
-        this.ctx.moveTo(x, rulerHeight - 20);
-        this.ctx.lineTo(x, rulerHeight);
+        this.ctx.moveTo(x, RULER_HEIGHT - 20);
+        this.ctx.lineTo(x, RULER_HEIGHT);
         this.ctx.stroke();
 
         // Time label
         const minutes = Math.floor(t / 60);
         const seconds = Math.floor(t % 60);
-        this.ctx.fillText(`${minutes}:${seconds.toString().padStart(2, '0')}`, x + 2, rulerHeight - 25);
+        this.ctx.fillText(
+          `${minutes}:${seconds.toString().padStart(2, '0')}`,
+          x + 2,
+          RULER_HEIGHT - 25
+        );
       } else {
         // Minor marker
         this.ctx.beginPath();
-        this.ctx.moveTo(x, rulerHeight - 10);
-        this.ctx.lineTo(x, rulerHeight);
+        this.ctx.moveTo(x, RULER_HEIGHT - 10);
+        this.ctx.lineTo(x, RULER_HEIGHT);
         this.ctx.stroke();
       }
     }
@@ -144,8 +151,8 @@ export class TimelineRenderer {
     // Draw ruler border
     this.ctx.strokeStyle = '#333';
     this.ctx.beginPath();
-    this.ctx.moveTo(0, rulerHeight);
-    this.ctx.lineTo(this.canvas.width, rulerHeight);
+    this.ctx.moveTo(0, RULER_HEIGHT);
+    this.ctx.lineTo(this.canvas.width, RULER_HEIGHT);
     this.ctx.stroke();
   }
 
@@ -164,30 +171,28 @@ export class TimelineRenderer {
    * Draw all tracks
    */
   private drawTracks(tracks: Track[], pixelsPerSecond: number, scrollLeft: number): void {
-    const rulerHeight = 30;
-    const trackHeight = 80;
-    let yOffset = rulerHeight;
+    let yOffset = RULER_HEIGHT;
 
     for (const track of tracks) {
       if (!track.visible) continue;
 
       // Draw track background
       this.ctx.fillStyle = '#0a0a0a';
-      this.ctx.fillRect(0, yOffset, this.canvas.width, trackHeight);
+      this.ctx.fillRect(0, yOffset, this.canvas.width, TRACK_HEIGHT);
 
       // Draw track border
       this.ctx.strokeStyle = '#333';
       this.ctx.beginPath();
-      this.ctx.moveTo(0, yOffset + trackHeight);
-      this.ctx.lineTo(this.canvas.width, yOffset + trackHeight);
+      this.ctx.moveTo(0, yOffset + TRACK_HEIGHT);
+      this.ctx.lineTo(this.canvas.width, yOffset + TRACK_HEIGHT);
       this.ctx.stroke();
 
       // Draw clips on track
       for (const clip of track.clips) {
-        this.clipRenderer.render(clip, pixelsPerSecond, scrollLeft, yOffset, trackHeight);
+        this.clipRenderer.render(clip, pixelsPerSecond, scrollLeft, yOffset, TRACK_HEIGHT);
       }
 
-      yOffset += trackHeight;
+      yOffset += TRACK_HEIGHT;
     }
   }
 
@@ -213,4 +218,3 @@ export class TimelineRenderer {
     return time * pixelsPerSecond - scrollLeft;
   }
 }
-

@@ -77,10 +77,25 @@ export class PlayheadRenderer {
     canvasHeight: number,
     showLabel: boolean = true
   ): void {
-    this.render(currentTime, pixelsPerSecond, scrollLeft, canvasHeight);
+    const x = currentTime * pixelsPerSecond - scrollLeft;
+
+    // Skip if playhead is outside visible area
+    if (x < 0 || x > this.ctx.canvas.width) {
+      return;
+    }
+
+    // Draw playhead line
+    this.ctx.strokeStyle = '#ff4444';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, 0);
+    this.ctx.lineTo(x, canvasHeight);
+    this.ctx.stroke();
+
+    // Draw playhead handle (triangle at top)
+    this.drawPlayheadHandle(x, 0);
 
     if (showLabel) {
-      const x = currentTime * pixelsPerSecond - scrollLeft;
       this.drawTimeLabel(x, 20, currentTime);
     }
   }
@@ -123,6 +138,11 @@ export class PlayheadRenderer {
   ): void {
     const x = time * pixelsPerSecond - scrollLeft;
 
+    // Skip if shadow is outside visible area
+    if (x < 0 || x > this.ctx.canvas.width) {
+      return;
+    }
+
     // Draw shadow line
     this.ctx.strokeStyle = 'rgba(255, 68, 68, 0.3)';
     this.ctx.lineWidth = 2;
@@ -134,4 +154,3 @@ export class PlayheadRenderer {
     this.ctx.setLineDash([]);
   }
 }
-
