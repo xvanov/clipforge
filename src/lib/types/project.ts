@@ -29,4 +29,3 @@ export type Resolution = 'source' | '2160p' | '1440p' | '1080p' | '720p' | '480p
 export type Codec = 'h264' | 'hevc' | 'vp9';
 export type Quality = 'high' | 'medium' | 'low';
 export type AudioCodec = 'aac' | 'mp3' | 'opus';
-

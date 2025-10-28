@@ -1,9 +1,11 @@
 # Proxy Generation Feature Complete
 
 ## Overview
+
 Implemented automatic proxy video generation to support MOV and other non-web-compatible video formats for browser-based playback.
 
 ## Problem Solved
+
 - MOV files and other formats with codecs not natively supported by HTML5 video (ProRes, HEVC, etc.) were failing with "NotSupportedError: The operation is not supported"
 - Browsers only support limited codecs: H.264, VP8, VP9, AV1
 
@@ -49,11 +51,13 @@ Implemented automatic proxy video generation to support MOV and other non-web-co
 ## User Experience
 
 ### For Web-Compatible Formats (MP4 with H.264)
+
 - Import completes instantly
 - Playback works immediately
 - No proxy generation needed
 
 ### For Non-Compatible Formats (MOV, ProRes, HEVC, etc.)
+
 - Import completes quickly (no blocking)
 - Clip appears in media library with thumbnail
 - On playback attempt:
@@ -82,6 +86,7 @@ src/lib/components/
 ## Testing
 
 Run the app and test:
+
 1. Import an MP4 file → Should play immediately
 2. Import a MOV file → Should show loading, then play once proxy is ready
 3. Re-select the MOV clip → Should play immediately (proxy cached)
@@ -89,12 +94,14 @@ Run the app and test:
 ## Technical Details
 
 **Supported Web Codecs** (no proxy needed):
+
 - H.264 (h264)
 - VP8 (vp8)
 - VP9 (vp9)
 - AV1 (av1)
 
 **Requires Proxy**:
+
 - HEVC (h265)
 - ProRes
 - MPEG-4
@@ -103,6 +110,7 @@ Run the app and test:
 - All other codecs
 
 **Proxy Storage**:
+
 - Location: `~/.clipforge/cache/proxies/`
 - Format: `{clip_id}.mp4`
 - Persistent across app restarts
@@ -114,7 +122,7 @@ Run the app and test:
 ✅ Transparent to user - automatic background processing  
 ✅ Cached proxies - one-time generation cost  
 ✅ Fallback handling - graceful timeout if generation fails  
-✅ Progress feedback - loading indicator shows what's happening  
+✅ Progress feedback - loading indicator shows what's happening
 
 ## Future Enhancements (Optional)
 
@@ -123,4 +131,3 @@ Run the app and test:
 - Parallel proxy generation for multiple clips
 - User preference to generate proxies for all imports
 - Proxy quality settings (resolution, bitrate)
-

@@ -16,11 +16,13 @@ export const timelineZoom: Writable<number> = writable(50);
 // Derived: Total timeline duration
 export const timelineDuration = derived(timeline, ($tracks) => {
   if ($tracks.length === 0) return 0;
-  
+
   return Math.max(
     ...$tracks.map((track) => {
       if (track.clips.length === 0) return 0;
-      return Math.max(...track.clips.map((clip) => clip.start_time + (clip.out_point - clip.in_point)));
+      return Math.max(
+        ...track.clips.map((clip) => clip.start_time + (clip.out_point - clip.in_point))
+      );
     })
   );
 });
@@ -64,4 +66,3 @@ export function pause() {
 export function seek(position: number) {
   playheadPosition.set(position);
 }
-

@@ -7,12 +7,14 @@ A powerful desktop video editor built with Tauri, Svelte, and FFmpeg. Import vid
 ## Features
 
 ### MVP (Currently Implementing)
+
 - ✅ **Phase 1 & 2 Complete**: Project structure and foundation
 - ✅ **User Story 1**: Import and Basic Video Playback (with MOV/ProRes support)
 - 🚧 **User Story 2**: Timeline Editing and Trimming
 - 🚧 **User Story 3**: Video Export
 
 ### Planned Features
+
 - 📹 Screen and webcam recording (macOS & Windows)
 - 🎞️ Multi-track timeline with overlays
 - 💬 AI-powered captions (Whisper.cpp)
@@ -54,6 +56,7 @@ npm run tauri:dev
 ```
 
 This will:
+
 1. Start the Vite dev server (frontend with hot reload)
 2. Build the Rust backend
 3. Launch the Tauri window
@@ -67,6 +70,7 @@ npm run tauri:build
 ```
 
 **Output**:
+
 - **macOS**: `src-tauri/target/release/bundle/macos/ClipForge.app`
 - **Windows**: `src-tauri/target/release/bundle/msi/ClipForge.msi`
 
@@ -106,54 +110,169 @@ clipforge/
 ### Running Tests
 
 ```bash
-# Rust tests
-cd src-tauri && cargo test
-
 # Frontend tests
 npm test
 
-# Linting
+# Frontend tests (watch mode for development)
+npm run test:watch
+
+# Rust tests
+cd src-tauri && cargo test
+```
+
+### Code Quality Checks
+
+```bash
+# Frontend linting
 npm run lint
+
+# Frontend type checking
+npm run type-check
+
+# Frontend formatting check
+npm run format:check
+
+# Frontend formatting fix
+npm run format:write
+
+# Rust linting (clippy)
 cd src-tauri && cargo clippy
 
-# Formatting
-npm run format:check
+# Rust linting (strict mode - CI/CD uses this)
+cd src-tauri && cargo clippy -- -D warnings
+
+# Rust formatting check
 cd src-tauri && cargo fmt --check
+
+# Rust formatting fix
+cd src-tauri && cargo fmt
 ```
 
 ### CI/CD Validation (Local)
 
-Before committing, run all checks:
+Run all CI/CD checks locally before pushing to ensure the pipeline will pass:
+
+#### Quick Method (All Checks)
 
 ```bash
-# Run full validation
-./scripts/validate-local.sh
+# Frontend checks
+npm test && npm run lint && npm run type-check && npm run format:check
+
+# Rust checks (from src-tauri directory)
+cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check
 ```
 
-Or manually:
+#### Step-by-Step Method
+
+**Frontend Checks** (runs on Ubuntu in CI/CD):
 
 ```bash
-cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check && cd ..
-npm test && npm run lint && npm run type-check
+# 1. Install dependencies (if not already installed)
+npm install
+
+# 2. Build frontend (required for Rust tests)
+npm run build
+
+# 3. Run tests
+npm test
+
+# 4. Run linter
+npm run lint
+
+# 5. Run type checker
+npm run type-check
+
+# 6. Check formatting
+npm run format:check
+```
+
+**Rust Checks** (runs on macOS & Windows in CI/CD):
+
+```bash
+# Navigate to Rust directory
+cd src-tauri
+
+# 1. Run tests
+cargo test
+
+# 2. Run clippy (with warnings as errors)
+cargo clippy -- -D warnings
+
+# 3. Check formatting
+cargo fmt --check
+
+# Go back to project root
+cd ..
+```
+
+#### Complete CI/CD Simulation
+
+Run this comprehensive command to simulate the entire CI/CD pipeline:
+
+```bash
+# From project root
+echo "=== FRONTEND CHECKS ===" && \
+npm test && \
+npm run lint && \
+npm run type-check && \
+npm run format:check && \
+echo "=== RUST CHECKS ===" && \
+cd src-tauri && \
+cargo test && \
+cargo clippy -- -D warnings && \
+cargo fmt --check && \
+cd .. && \
+echo "✅ ALL CI/CD CHECKS PASSED!"
+```
+
+**Expected Output:**
+- ✅ Frontend: 27 tests passing, 0 linting errors, 0 type errors, formatting valid
+- ✅ Rust: 9 tests passing, 0 clippy warnings, formatting valid
+
+#### Fixing Issues
+
+If checks fail:
+
+```bash
+# Fix frontend formatting
+npm run format:write
+
+# Fix Rust formatting
+cd src-tauri && cargo fmt
+
+# Fix linting issues (review and fix manually)
+npm run lint
+cd src-tauri && cargo clippy
+```
+
+### Full Build Test
+
+```bash
+# Test production build
 npm run tauri:build
 ```
 
 ## Implementation Status
 
 ### Phase 1: Setup ✅ COMPLETE
+
 - [x] T001-T010: Project initialization, configuration, CI/CD
 
-### Phase 2: Foundational ✅ COMPLETE  
+### Phase 2: Foundational ✅ COMPLETE
+
 - [x] T011-T026: Data models, stores, infrastructure
 
 ### Phase 3: User Story 1 (Import & Playback) ✅ COMPLETE
+
 - [x] T027-T040b: Media import, thumbnails, video preview, proxy generation
 - **Achievement**: Full video import and playback with MOV/ProRes support
 
 ### Phase 4: User Story 2 (Timeline Editing) 📋 TODO
+
 - [ ] T041-T061: Canvas timeline, drag-drop, trim/split
 
 ### Phase 5: User Story 3 (Export) 📋 TODO
+
 - [ ] T062-T075: FFmpeg export pipeline
 
 See [`specs/001-clipforge/tasks.md`](specs/001-clipforge/tasks.md) for complete task list.
@@ -175,12 +294,14 @@ Rust Backend (FFmpeg, Storage, Platform APIs)
 ### Key Components
 
 **Rust Backend** (`src-tauri/src/`):
+
 - **Commands**: Tauri IPC handlers (media, project, timeline, export, recording)
 - **Models**: Data structures (Project, MediaClip, TimelineClip, Track)
 - **FFmpeg**: Media processing (import, thumbnail, proxy generation, export, transcode)
 - **Storage**: Persistence (JSON projects, SQLite cache)
 
 **Svelte Frontend** (`src/`):
+
 - **Components**: UI (MediaLibrary, VideoPreview, Timeline, ExportDialog)
 - **Stores**: State management (project, mediaLibrary, timeline)
 - **Canvas**: Custom timeline renderer (60fps, drag-drop, zoom)
@@ -228,11 +349,13 @@ sudo chown -R $(whoami) ~/.npm
 ### FFmpeg Not Found
 
 **macOS**:
+
 ```bash
 brew install ffmpeg
 ```
 
 **Windows**:
+
 ```bash
 choco install ffmpeg
 ```
@@ -240,6 +363,7 @@ choco install ffmpeg
 ### Slow Rust Compilation
 
 Use faster linker (macOS):
+
 ```bash
 brew install llvm
 # Add to ~/.cargo/config.toml:

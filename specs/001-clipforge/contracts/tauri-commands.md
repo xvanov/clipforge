@@ -9,6 +9,7 @@
 Tauri commands provide the bridge between the Svelte frontend and Rust backend. All commands are async and return `Result<T, String>` for error handling.
 
 **Command Categories**:
+
 - Media Management (import, metadata extraction)
 - Playback Control (video player state)
 - Timeline Operations (CRUD for clips, tracks)
@@ -28,6 +29,7 @@ Import video files into media library.
 **Command**: `import_media_files`
 
 **Request**:
+
 ```typescript
 {
   paths: string[]  // Absolute paths to video files
@@ -35,6 +37,7 @@ Import video files into media library.
 ```
 
 **Response**:
+
 ```typescript
 {
   clips: MediaClip[],  // Successfully imported clips
@@ -46,6 +49,7 @@ Import video files into media library.
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn import_media_files(
@@ -55,12 +59,14 @@ async fn import_media_files(
 ```
 
 **Side Effects**:
+
 - Generates thumbnail (async background task)
 - Generates proxy video (async background task, optional)
 - Inserts metadata into SQLite cache
 - Emits `media_imported` event with clip IDs
 
 **Errors**:
+
 - "File not found: {path}"
 - "Unsupported format: {codec}"
 - "Failed to read metadata: {error}"
@@ -74,13 +80,15 @@ Extract detailed metadata from video file.
 **Command**: `get_media_metadata`
 
 **Request**:
+
 ```typescript
 {
-  clip_id: string  // MediaClip ID
+  clip_id: string; // MediaClip ID
 }
 ```
 
 **Response**:
+
 ```typescript
 {
   duration: number,
@@ -96,6 +104,7 @@ Extract detailed metadata from video file.
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn get_media_metadata(
@@ -113,6 +122,7 @@ Generate thumbnail image for clip.
 **Command**: `generate_thumbnail`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -121,13 +131,15 @@ Generate thumbnail image for clip.
 ```
 
 **Response**:
+
 ```typescript
 {
-  thumbnail_path: string  // Absolute path to JPEG file
+  thumbnail_path: string; // Absolute path to JPEG file
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn generate_thumbnail(
@@ -138,6 +150,7 @@ async fn generate_thumbnail(
 ```
 
 **FFmpeg Command**:
+
 ```bash
 ffmpeg -ss {timestamp} -i {input} -vframes 1 -q:v 2 -f image2 {output}
 ```
@@ -151,6 +164,7 @@ Generate lower-resolution proxy for smooth editing.
 **Command**: `generate_proxy`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -159,13 +173,15 @@ Generate lower-resolution proxy for smooth editing.
 ```
 
 **Response**:
+
 ```typescript
 {
-  proxy_path: string  // Absolute path to proxy MP4
+  proxy_path: string; // Absolute path to proxy MP4
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn generate_proxy(
@@ -176,6 +192,7 @@ async fn generate_proxy(
 ```
 
 **FFmpeg Command**:
+
 ```bash
 ffmpeg -i {input} -vf "scale=1920:1080:force_original_aspect_ratio=decrease" \
   -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k {output}
@@ -192,6 +209,7 @@ Load clip into video player.
 **Command**: `load_clip_for_playback`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -200,13 +218,15 @@ Load clip into video player.
 ```
 
 **Response**:
+
 ```typescript
 {
-  playback_url: string  // File URL (file://) or asset protocol
+  playback_url: string; // File URL (file://) or asset protocol
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn load_clip_for_playback(
@@ -217,6 +237,7 @@ async fn load_clip_for_playback(
 ```
 
 **Notes**:
+
 - Uses Tauri's asset protocol for secure file access
 - Returns `asset://` URL that frontend can use in `<video>` element
 
@@ -231,6 +252,7 @@ Add clip to timeline track.
 **Command**: `add_clip_to_timeline`
 
 **Request**:
+
 ```typescript
 {
   media_clip_id: string,
@@ -242,13 +264,15 @@ Add clip to timeline track.
 ```
 
 **Response**:
+
 ```typescript
 {
-  timeline_clip: TimelineClip  // Created clip with ID
+  timeline_clip: TimelineClip; // Created clip with ID
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn add_clip_to_timeline(
@@ -262,12 +286,14 @@ async fn add_clip_to_timeline(
 ```
 
 **Validation**:
+
 - Check media_clip exists
 - Check track exists
 - Validate in_point < out_point
 - Check no overlap with existing clips on track
 
 **Errors**:
+
 - "Media clip not found: {id}"
 - "Track not found: {id}"
 - "Clip overlaps with existing clip at {time}"
@@ -281,6 +307,7 @@ Update timeline clip properties.
 **Command**: `update_timeline_clip`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -294,13 +321,15 @@ Update timeline clip properties.
 ```
 
 **Response**:
+
 ```typescript
 {
-  timeline_clip: TimelineClip  // Updated clip
+  timeline_clip: TimelineClip; // Updated clip
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn update_timeline_clip(
@@ -319,6 +348,7 @@ Split clip at specified time.
 **Command**: `split_timeline_clip`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -327,6 +357,7 @@ Split clip at specified time.
 ```
 
 **Response**:
+
 ```typescript
 {
   clip_before: TimelineClip,  // Original clip (trimmed to split point)
@@ -335,6 +366,7 @@ Split clip at specified time.
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn split_timeline_clip(
@@ -345,6 +377,7 @@ async fn split_timeline_clip(
 ```
 
 **Validation**:
+
 - `split_time` must be between clip start and end time
 - Creates two clips referencing same MediaClip with adjusted in/out points
 
@@ -357,20 +390,23 @@ Remove clip from timeline.
 **Command**: `delete_timeline_clip`
 
 **Request**:
+
 ```typescript
 {
-  clip_id: string
+  clip_id: string;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
-  success: boolean
+  success: boolean;
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn delete_timeline_clip(
@@ -388,6 +424,7 @@ Add new track to timeline.
 **Command**: `create_track`
 
 **Request**:
+
 ```typescript
 {
   name: string,
@@ -396,13 +433,15 @@ Add new track to timeline.
 ```
 
 **Response**:
+
 ```typescript
 {
-  track: Track  // Created track with ID
+  track: Track; // Created track with ID
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn create_track(
@@ -423,20 +462,23 @@ Create empty project with default track.
 **Command**: `create_new_project`
 
 **Request**:
+
 ```typescript
 {
-  name: string
+  name: string;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
-  project: Project  // New project with ID
+  project: Project; // New project with ID
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn create_new_project(
@@ -454,13 +496,15 @@ Save project to file.
 **Command**: `save_project`
 
 **Request**:
+
 ```typescript
 {
-  path: string  // Absolute path to .clipforge file
+  path: string; // Absolute path to .clipforge file
 }
 ```
 
 **Response**:
+
 ```typescript
 {
   success: boolean,
@@ -469,6 +513,7 @@ Save project to file.
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn save_project(
@@ -478,6 +523,7 @@ async fn save_project(
 ```
 
 **Side Effects**:
+
 - Serializes project to JSON
 - Writes to file atomically (temp file + rename)
 - Updates project.file_path and project.modified_at
@@ -491,20 +537,23 @@ Load project from file.
 **Command**: `load_project`
 
 **Request**:
+
 ```typescript
 {
-  path: string  // Absolute path to .clipforge file
+  path: string; // Absolute path to .clipforge file
 }
 ```
 
 **Response**:
+
 ```typescript
 {
-  project: Project  // Loaded project
+  project: Project; // Loaded project
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn load_project(
@@ -514,10 +563,12 @@ async fn load_project(
 ```
 
 **Validation**:
+
 - Check all referenced media files still exist
 - Warn if missing files (allow user to relocate)
 
 **Errors**:
+
 - "Invalid project file format"
 - "Project version {version} not supported"
 - "Missing media files: {paths}"
@@ -533,6 +584,7 @@ Perform auto-save (background operation).
 **Request**: (none)
 
 **Response**:
+
 ```typescript
 {
   success: boolean,
@@ -541,6 +593,7 @@ Perform auto-save (background operation).
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn auto_save_project(
@@ -549,6 +602,7 @@ async fn auto_save_project(
 ```
 
 **Side Effects**:
+
 - Serializes project to JSON
 - Stores in SQLite auto_saves table
 - Keeps last 10 auto-saves (delete older)
@@ -564,6 +618,7 @@ Export timeline to video file.
 **Command**: `export_timeline`
 
 **Request**:
+
 ```typescript
 {
   output_path: string,
@@ -577,13 +632,15 @@ Export timeline to video file.
 ```
 
 **Response**:
+
 ```typescript
 {
-  job_id: string  // Export job ID for progress tracking
+  job_id: string; // Export job ID for progress tracking
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn export_timeline(
@@ -594,11 +651,13 @@ async fn export_timeline(
 ```
 
 **Side Effects**:
+
 - Creates export job (background task)
 - Generates FFmpeg concat file from timeline clips
 - Emits progress events: `export_progress`, `export_complete`, `export_error`
 
 **Progress Events**:
+
 ```typescript
 // Emitted periodically during export
 {
@@ -620,20 +679,23 @@ Cancel ongoing export.
 **Command**: `cancel_export`
 
 **Request**:
+
 ```typescript
 {
-  job_id: string
+  job_id: string;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
-  success: boolean
+  success: boolean;
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn cancel_export(
@@ -643,6 +705,7 @@ async fn cancel_export(
 ```
 
 **Side Effects**:
+
 - Terminates FFmpeg process
 - Deletes partial output file
 - Emits `export_cancelled` event
@@ -658,13 +721,15 @@ Request system permissions for screen/camera/mic.
 **Command**: `request_recording_permissions`
 
 **Request**:
+
 ```typescript
 {
-  permissions: Array<"screen" | "camera" | "microphone">
+  permissions: Array<'screen' | 'camera' | 'microphone'>;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
   granted: {
@@ -676,6 +741,7 @@ Request system permissions for screen/camera/mic.
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn request_recording_permissions(
@@ -685,6 +751,7 @@ async fn request_recording_permissions(
 ```
 
 **Platform-Specific**:
+
 - macOS: Uses `CGPreflightScreenCaptureAccess`, `AVCaptureDevice.requestAccess`
 - Windows: Shows OS permission dialogs automatically
 
@@ -699,6 +766,7 @@ Get available screens, windows, and cameras.
 **Request**: (none)
 
 **Response**:
+
 ```typescript
 {
   screens: Array<{
@@ -719,6 +787,7 @@ Get available screens, windows, and cameras.
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn list_recording_sources(
@@ -735,6 +804,7 @@ Begin screen/webcam recording.
 **Command**: `start_recording`
 
 **Request**:
+
 ```typescript
 {
   type: "screen" | "webcam" | "screen_webcam",
@@ -749,13 +819,15 @@ Begin screen/webcam recording.
 ```
 
 **Response**:
+
 ```typescript
 {
-  session_id: string  // Recording session ID
+  session_id: string; // Recording session ID
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn start_recording(
@@ -765,6 +837,7 @@ async fn start_recording(
 ```
 
 **Side Effects**:
+
 - Creates RecordingSession (status = "recording")
 - Starts platform-specific capture
 - Emits `recording_started` event
@@ -779,20 +852,23 @@ End recording and create MediaClip.
 **Command**: `stop_recording`
 
 **Request**:
+
 ```typescript
 {
-  session_id: string
+  session_id: string;
 }
 ```
 
 **Response**:
+
 ```typescript
 {
-  media_clip: MediaClip  // Created from recording
+  media_clip: MediaClip; // Created from recording
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn stop_recording(
@@ -802,6 +878,7 @@ async fn stop_recording(
 ```
 
 **Side Effects**:
+
 - Stops capture
 - Finalizes video file
 - Creates MediaClip (adds to media_library)
@@ -819,6 +896,7 @@ Add effect to timeline clip.
 **Command**: `apply_effect`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -831,13 +909,15 @@ Add effect to timeline clip.
 ```
 
 **Response**:
+
 ```typescript
 {
-  effect: Effect  // Created effect with ID
+  effect: Effect; // Created effect with ID
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn apply_effect(
@@ -856,6 +936,7 @@ Generate captions using speech-to-text.
 **Command**: `generate_captions`
 
 **Request**:
+
 ```typescript
 {
   clip_id: string,
@@ -864,13 +945,15 @@ Generate captions using speech-to-text.
 ```
 
 **Response**:
+
 ```typescript
 {
-  job_id: string  // Caption generation job ID
+  job_id: string; // Caption generation job ID
 }
 ```
 
 **Rust Signature**:
+
 ```rust
 #[tauri::command]
 async fn generate_captions(
@@ -881,11 +964,13 @@ async fn generate_captions(
 ```
 
 **Side Effects**:
+
 - Extracts audio from clip
 - Sends to Whisper.cpp (background task)
 - Emits `captions_generated` event when complete with Caption array
 
 **Progress Events**:
+
 ```typescript
 {
   job_id: string,
@@ -901,6 +986,7 @@ async fn generate_captions(
 ### Events Emitted by Backend
 
 **Event**: `media_imported`
+
 ```typescript
 {
   clip_ids: string[]
@@ -908,6 +994,7 @@ async fn generate_captions(
 ```
 
 **Event**: `export_progress`
+
 ```typescript
 {
   job_id: string,
@@ -918,6 +1005,7 @@ async fn generate_captions(
 ```
 
 **Event**: `export_complete`
+
 ```typescript
 {
   job_id: string,
@@ -926,6 +1014,7 @@ async fn generate_captions(
 ```
 
 **Event**: `export_error`
+
 ```typescript
 {
   job_id: string,
@@ -934,13 +1023,15 @@ async fn generate_captions(
 ```
 
 **Event**: `recording_started`
+
 ```typescript
 {
-  session_id: string
+  session_id: string;
 }
 ```
 
 **Event**: `recording_progress`
+
 ```typescript
 {
   session_id: string,
@@ -949,6 +1040,7 @@ async fn generate_captions(
 ```
 
 **Event**: `recording_stopped`
+
 ```typescript
 {
   session_id: string,
@@ -957,6 +1049,7 @@ async fn generate_captions(
 ```
 
 **Event**: `captions_generated`
+
 ```typescript
 {
   clip_id: string,
@@ -976,17 +1069,17 @@ import { listen } from '@tauri-apps/api/event';
 
 async function importVideos(paths: string[]) {
   const result = await invoke<ImportResult>('import_media_files', { paths });
-  
+
   // Add successfully imported clips to UI
-  result.clips.forEach(clip => {
+  result.clips.forEach((clip) => {
     mediaLibrary.add(clip);
   });
-  
+
   // Show errors for failed imports
   result.errors.forEach(({ path, error }) => {
     console.error(`Failed to import ${path}: ${error}`);
   });
-  
+
   // Listen for thumbnail generation
   await listen('media_imported', (event) => {
     const { clip_ids } = event.payload;
@@ -1003,16 +1096,16 @@ async function importVideos(paths: string[]) {
 async function exportVideo(outputPath: string, settings: ExportSettings) {
   const { job_id } = await invoke<ExportJob>('export_timeline', {
     output_path: outputPath,
-    settings
+    settings,
   });
-  
+
   // Listen for progress updates
   await listen<ExportProgress>('export_progress', (event) => {
     if (event.payload.job_id === job_id) {
       updateProgressBar(event.payload.progress);
     }
   });
-  
+
   // Handle completion
   await listen<ExportComplete>('export_complete', (event) => {
     if (event.payload.job_id === job_id) {
@@ -1038,6 +1131,7 @@ try {
 ```
 
 **Common Error Patterns**:
+
 - "File not found: {path}" → Show file picker again
 - "Unsupported format: {codec}" → Show codec help message
 - "Permission denied: screen recording" → Guide user to System Preferences
@@ -1050,6 +1144,7 @@ try {
 **Total Commands**: 28
 
 **Command Categories**:
+
 - Media Management: 4 commands
 - Playback Control: 1 command
 - Timeline Operations: 6 commands
@@ -1061,6 +1156,7 @@ try {
 **Event System**: 8 event types for async notifications
 
 **Design Principles**:
+
 - Async by default (all commands return Promises)
 - Strong typing (TypeScript interfaces + Rust structs)
 - Error handling via Result type
@@ -1068,4 +1164,3 @@ try {
 - Validation at command boundaries
 
 **Next Steps**: Generate quickstart guide for setting up development environment
-

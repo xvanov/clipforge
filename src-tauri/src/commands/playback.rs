@@ -26,16 +26,19 @@ pub async fn load_clip_for_playback(
         clip.source_path.clone()
     };
 
-    println!("load_clip_for_playback: clip_id={}, use_proxy={}, has_proxy={}, returning: {}", 
-             clip_id, use_proxy, clip.proxy_path.is_some(), playback_path);
+    println!(
+        "load_clip_for_playback: clip_id={}, use_proxy={}, has_proxy={}, returning: {}",
+        clip_id,
+        use_proxy,
+        clip.proxy_path.is_some(),
+        playback_path
+    );
 
     Ok(playback_path)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_playback_url_encoding() {
         let path = "/Users/test/Videos/my video.mp4";
@@ -43,4 +46,3 @@ mod tests {
         assert!(encoded.contains("%20")); // Space should be encoded
     }
 }
-

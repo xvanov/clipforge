@@ -211,4 +211,3 @@ describe('Media Library Store', () => {
     expect(sortedClips[1].id).toBe('clip-1');
   });
 });
-

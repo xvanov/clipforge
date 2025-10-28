@@ -22,6 +22,7 @@ pub struct MediaClip {
     pub captions: Vec<String>, // Caption IDs - actual Caption model will be added later
 }
 
+#[allow(dead_code)]
 impl MediaClip {
     pub fn new(
         source_path: String,
@@ -74,4 +75,3 @@ impl MediaClip {
         self.width >= 1920
     }
 }
-

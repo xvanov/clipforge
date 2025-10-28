@@ -72,15 +72,15 @@ describe('Project Store', () => {
     };
 
     project.set(mockProject);
-    
+
     // Wait a tiny bit to ensure timestamp is different
     setTimeout(() => {
       markProjectModified();
-      
+
       const updatedProject = get(project);
       expect(updatedProject).not.toBeNull();
       expect(updatedProject?.modified_at).not.toBe(earlierTime);
-      
+
       // Parse and compare dates
       const modifiedDate = new Date(updatedProject!.modified_at);
       const earlierDate = new Date(earlierTime);
@@ -131,4 +131,3 @@ describe('Project Store', () => {
     expect(updatedProject?.id).toBe('project-1'); // Other properties unchanged
   });
 });
-

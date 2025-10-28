@@ -7,20 +7,17 @@ use std::process::Command;
 /// Returns true for codecs that aren't natively supported in browsers
 pub fn needs_proxy(codec: &str) -> bool {
     let codec_lower = codec.to_lowercase();
-    
+
     // Web-compatible codecs (no proxy needed)
     let web_compatible = ["h264", "vp8", "vp9", "av1"];
-    
+
     // If codec is not in the web-compatible list, we need a proxy
     !web_compatible.iter().any(|c| codec_lower.contains(c))
 }
 
 /// Generate a web-compatible proxy video (H.264/MP4)
 /// This allows MOV, ProRes, HEVC, and other formats to play in the browser
-pub async fn generate_proxy(
-    source_path: &str,
-    output_path: &str,
-) -> Result<String, String> {
+pub async fn generate_proxy(source_path: &str, output_path: &str) -> Result<String, String> {
     // Validate input file exists
     if !Path::new(source_path).exists() {
         return Err(format!("Source file not found: {}", source_path));
@@ -38,16 +35,25 @@ pub async fn generate_proxy(
     // - Constant Rate Factor (CRF) 23 for good quality/size balance
     let output = Command::new("ffmpeg")
         .args([
-            "-y",                           // Overwrite output file
-            "-i", source_path,              // Input file
-            "-c:v", "libx264",              // H.264 video codec
-            "-preset", "fast",              // Fast encoding (good speed/quality)
-            "-crf", "23",                   // Quality level (lower = better)
-            "-vf", "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease", // Scale to max 1080p
-            "-c:a", "aac",                  // AAC audio codec
-            "-b:a", "128k",                 // Audio bitrate
-            "-movflags", "+faststart",      // Enable progressive download
-            "-pix_fmt", "yuv420p",          // Ensure compatibility
+            "-y", // Overwrite output file
+            "-i",
+            source_path, // Input file
+            "-c:v",
+            "libx264", // H.264 video codec
+            "-preset",
+            "fast", // Fast encoding (good speed/quality)
+            "-crf",
+            "23", // Quality level (lower = better)
+            "-vf",
+            "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease", // Scale to max 1080p
+            "-c:a",
+            "aac", // AAC audio codec
+            "-b:a",
+            "128k", // Audio bitrate
+            "-movflags",
+            "+faststart", // Enable progressive download
+            "-pix_fmt",
+            "yuv420p", // Ensure compatibility
             output_path,
         ])
         .output()
@@ -89,12 +95,9 @@ mod tests {
 
     #[test]
     fn test_proxy_path_validation() {
-        let result = tokio_test::block_on(generate_proxy(
-            "/nonexistent/file.mov",
-            "/tmp/proxy.mp4"
-        ));
+        let result =
+            tokio_test::block_on(generate_proxy("/nonexistent/file.mov", "/tmp/proxy.mp4"));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not found"));
     }
 }
-

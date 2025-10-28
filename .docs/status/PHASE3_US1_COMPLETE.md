@@ -95,6 +95,7 @@ src/
 ## Key Features
 
 ### ✅ Video Import
+
 - Multi-file import via file picker
 - Drag-and-drop support for video files
 - Automatic metadata extraction (FFmpeg/ffprobe)
@@ -103,6 +104,7 @@ src/
 - Error handling for failed imports
 
 ### ✅ Media Library
+
 - Grid view of imported clips
 - Thumbnail previews (16:9 aspect ratio)
 - Clip metadata display (resolution, fps, duration, file size)
@@ -110,6 +112,7 @@ src/
 - Sorted by import time (newest first)
 
 ### ✅ Video Playback
+
 - HTML5 video element with native codec support
 - ✨ **NEW**: Automatic fallback to H.264 proxy for unsupported formats
 - ✨ **NEW**: Loading UI with progress spinner during proxy generation
@@ -120,6 +123,7 @@ src/
 - Error handling for playback issues
 
 ### ✅ State Management
+
 - Svelte stores for reactive state
 - Rust AppState for backend persistence
 - SQLite cache for media metadata
@@ -170,6 +174,7 @@ src/
 ## Next Steps (Phase 4 - User Story 2)
 
 The foundation is now in place for timeline editing:
+
 - Timeline component (T041-T046)
 - Timeline state management (T048-T052)
 - Clip manipulation (trim, split, delete) (T053-T058)
@@ -178,6 +183,7 @@ The foundation is now in place for timeline editing:
 ## Dependencies Added
 
 **Rust (Cargo.toml)**:
+
 - `dirs = "5.0"` - Home directory resolution
 - `urlencoding = "2.1"` - URL encoding for file paths
 - `tokio-test = "0.4"` - Async testing utilities (dev dependency)
@@ -200,11 +206,12 @@ The foundation is now in place for timeline editing:
 ✅ Tauri commands registered in main.rs  
 ✅ SQLite schema matches data model  
 ✅ ✨ Proxy generation tested with MOV files  
-✅ ✨ Background async processing working correctly  
+✅ ✨ Background async processing working correctly
 
 ## Conclusion
 
 **User Story 1 is now fully implemented and ready for testing.** Users can:
+
 1. Launch the app
 2. Import video files (drag-drop or file picker)
 3. **Import ANY format** (MP4, MOV, ProRes, HEVC, etc.) ✨

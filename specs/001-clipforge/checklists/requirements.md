@@ -88,4 +88,3 @@
 3. **Performance testing**: Given performance requirements (SC-004 through SC-009), establish performance benchmarking early
 4. **Cross-platform**: Success criteria require both macOS and Windows support - consider platform differences in planning
 5. **Caption feature**: P4 speech-to-text requires AI model integration - this is architecturally significant
-

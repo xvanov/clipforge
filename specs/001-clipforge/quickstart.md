@@ -10,25 +10,28 @@ Before you begin, ensure you have these tools installed:
 
 ### Required
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **Rust** | 1.75+ | Tauri backend development |
-| **Node.js** | 18+ LTS | Frontend build tools |
-| **npm** | 9+ | Package management |
-| **FFmpeg** | 6.0+ | Media processing (runtime dependency) |
-| **Git** | 2.30+ | Version control |
+| Tool        | Version | Purpose                               |
+| ----------- | ------- | ------------------------------------- |
+| **Rust**    | 1.75+   | Tauri backend development             |
+| **Node.js** | 18+ LTS | Frontend build tools                  |
+| **npm**     | 9+      | Package management                    |
+| **FFmpeg**  | 6.0+    | Media processing (runtime dependency) |
+| **Git**     | 2.30+   | Version control                       |
 
 ### Platform-Specific
 
 **macOS**:
+
 - Xcode Command Line Tools: `xcode-select --install`
 - Homebrew (recommended): `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 
 **Windows**:
+
 - Visual Studio 2022 Build Tools with C++ workload
 - Windows 10 SDK
 
 **Linux** (future support):
+
 - webkit2gtk-4.0
 - libappindicator3-dev
 
@@ -55,15 +58,18 @@ cargo --version
 ### 2. Install Node.js and npm
 
 **macOS** (Homebrew):
+
 ```bash
 brew install node@18
 ```
 
 **Windows**:
+
 - Download from https://nodejs.org/
 - Install LTS version (18.x)
 
 **Verify**:
+
 ```bash
 node --version  # Should show v18.x
 npm --version   # Should show 9.x
@@ -74,21 +80,25 @@ npm --version   # Should show 9.x
 ### 3. Install FFmpeg
 
 **macOS** (Homebrew):
+
 ```bash
 brew install ffmpeg
 ```
 
 **Windows** (Chocolatey):
+
 ```bash
 choco install ffmpeg
 ```
 
 **Windows** (Manual):
+
 1. Download from https://ffmpeg.org/download.html
 2. Extract to `C:\ffmpeg`
 3. Add `C:\ffmpeg\bin` to PATH
 
 **Verify**:
+
 ```bash
 ffmpeg -version  # Should show 6.0+
 ```
@@ -107,6 +117,7 @@ cd clipforge
 ### 5. Install Dependencies
 
 **Install Rust dependencies**:
+
 ```bash
 cd src-tauri
 cargo build
@@ -114,11 +125,13 @@ cd ..
 ```
 
 **Install Node dependencies**:
+
 ```bash
 npm install
 ```
 
 This will install:
+
 - Svelte + SvelteKit
 - Vite (bundler)
 - TypeScript
@@ -137,6 +150,7 @@ npm run tauri dev
 ```
 
 This command:
+
 1. Starts Vite dev server (frontend hot reload on port 1420)
 2. Builds Rust backend
 3. Launches Tauri window with dev tools
@@ -177,22 +191,22 @@ clipforge/
 Let's add a simple button to the UI:
 
 **1. Edit frontend component** (`src/App.svelte`):
+
 ```svelte
 <script lang="ts">
   import { invoke } from '@tauri-apps/api/tauri';
-  
+
   async function greet() {
     const message = await invoke<string>('greet', { name: 'ClipForge' });
     alert(message);
   }
 </script>
 
-<button on:click={greet}>
-  Greet ClipForge
-</button>
+<button on:click={greet}> Greet ClipForge </button>
 ```
 
 **2. Add Rust command** (`src-tauri/src/main.rs`):
+
 ```rust
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -249,22 +263,26 @@ Launches Playwright for end-to-end testing.
 ### Check Code Quality
 
 **Rust linting** (Clippy):
+
 ```bash
 cd src-tauri
 cargo clippy -- -D warnings
 ```
 
 **Rust formatting**:
+
 ```bash
 cargo fmt --check
 ```
 
 **Frontend linting** (ESLint):
+
 ```bash
 npm run lint
 ```
 
 **Frontend formatting** (Prettier):
+
 ```bash
 npm run format:check
 ```
@@ -274,11 +292,13 @@ npm run format:check
 ### Auto-fix Issues
 
 **Rust**:
+
 ```bash
 cargo fmt  # Auto-format
 ```
 
 **Frontend**:
+
 ```bash
 npm run lint:fix      # Auto-fix ESLint issues
 npm run format:write  # Auto-format with Prettier
@@ -295,6 +315,7 @@ npm run tauri build
 ```
 
 **Output location**:
+
 - **macOS**: `src-tauri/target/release/bundle/macos/ClipForge.app`
 - **Windows**: `src-tauri/target/release/bundle/msi/ClipForge.msi`
 
@@ -305,11 +326,13 @@ npm run tauri build
 ### Test Production Build
 
 **macOS**:
+
 ```bash
 open src-tauri/target/release/bundle/macos/ClipForge.app
 ```
 
 **Windows**:
+
 ```bash
 .\src-tauri\target\release\clipforge.exe
 ```
@@ -352,6 +375,7 @@ npm run tauri build
 ### Issue: "Rust compiler not found"
 
 **Solution**:
+
 ```bash
 # Add Rust to PATH
 source $HOME/.cargo/env
@@ -364,11 +388,13 @@ source $HOME/.cargo/env
 ### Issue: "FFmpeg not found" during runtime
 
 **Solution macOS**:
+
 ```bash
 brew install ffmpeg
 ```
 
 **Solution Windows**:
+
 - Download FFmpeg from https://ffmpeg.org/
 - Add to PATH
 - Restart terminal
@@ -378,6 +404,7 @@ brew install ffmpeg
 ### Issue: "webkit2gtk not found" (Linux)
 
 **Solution Ubuntu/Debian**:
+
 ```bash
 sudo apt update
 sudo apt install libwebkit2gtk-4.0-dev \
@@ -397,6 +424,7 @@ sudo apt install libwebkit2gtk-4.0-dev \
 **Solution**: Enable faster linker
 
 **macOS**:
+
 ```bash
 # Install lld
 brew install llvm
@@ -407,6 +435,7 @@ rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 ```
 
 **Linux**:
+
 ```bash
 sudo apt install lld
 ```
@@ -416,6 +445,7 @@ sudo apt install lld
 ### Issue: Hot reload not working
 
 **Solution**:
+
 1. Stop dev server (Ctrl+C)
 2. Clear build cache: `rm -rf target node_modules`
 3. Reinstall: `npm install && cd src-tauri && cargo clean && cargo build`
@@ -428,6 +458,7 @@ sudo apt install lld
 ### Recommended: VS Code
 
 **Install Extensions**:
+
 1. **rust-analyzer** - Rust LSP support
 2. **Svelte for VS Code** - Svelte syntax
 3. **Tauri** - Tauri project support
@@ -435,6 +466,7 @@ sudo apt install lld
 5. **Prettier** - Code formatting
 
 **Settings** (`.vscode/settings.json`):
+
 ```json
 {
   "rust-analyzer.checkOnSave.command": "clippy",
@@ -454,11 +486,13 @@ sudo apt install lld
 ### Alternative: Other IDEs
 
 **IntelliJ IDEA / WebStorm**:
+
 - Install Rust plugin
 - Install Svelte plugin
 - Enable ESLint and Prettier
 
 **Vim / Neovim**:
+
 - Use rust-analyzer LSP
 - Install svelte-language-server
 - Configure ALE or CoC for linting
@@ -470,6 +504,7 @@ sudo apt install lld
 ### Add New Tauri Command
 
 **1. Define Rust handler** (`src-tauri/src/commands/media.rs`):
+
 ```rust
 #[tauri::command]
 pub async fn my_command(param: String) -> Result<String, String> {
@@ -478,6 +513,7 @@ pub async fn my_command(param: String) -> Result<String, String> {
 ```
 
 **2. Register command** (`src-tauri/src/main.rs`):
+
 ```rust
 use crate::commands::media::my_command;
 
@@ -490,6 +526,7 @@ fn main() {
 ```
 
 **3. Call from frontend** (`src/lib/services/tauri-api.ts`):
+
 ```typescript
 import { invoke } from '@tauri-apps/api/tauri';
 
@@ -503,6 +540,7 @@ export async function myCommand(param: string): Promise<string> {
 ### Add New Svelte Component
 
 **1. Create component** (`src/lib/components/MyComponent.svelte`):
+
 ```svelte
 <script lang="ts">
   export let title: string;
@@ -520,6 +558,7 @@ export async function myCommand(param: string): Promise<string> {
 ```
 
 **2. Use in parent**:
+
 ```svelte
 <script>
   import MyComponent from '$lib/components/MyComponent.svelte';
@@ -539,7 +578,7 @@ use tokio::process::Command as AsyncCommand;
 #[tauri::command]
 async fn extract_thumbnail(input_path: String) -> Result<String, String> {
     let output_path = "/tmp/thumbnail.jpg";
-    
+
     let output = AsyncCommand::new("ffmpeg")
         .arg("-i")
         .arg(&input_path)
@@ -551,11 +590,11 @@ async fn extract_thumbnail(input_path: String) -> Result<String, String> {
         .output()
         .await
         .map_err(|e| format!("FFmpeg failed: {}", e))?;
-    
+
     if !output.status.success() {
         return Err(String::from_utf8_lossy(&output.stderr).to_string());
     }
-    
+
     Ok(output_path.to_string())
 }
 ```
@@ -593,6 +632,7 @@ async fn test_extract_thumbnail() {
 ```
 
 Create this script:
+
 ```bash
 #!/bin/bash
 set -e
@@ -680,6 +720,7 @@ Now that your environment is set up:
 **Setup time**: ~15-30 minutes (depending on download speeds)
 
 **Development loop**:
+
 1. Run `npm run tauri dev` → App launches
 2. Edit code → Hot reload updates
 3. Test changes → `npm test` / `cargo test`
@@ -688,4 +729,3 @@ Now that your environment is set up:
 6. Push → CI/CD validates
 
 **Ready to code!** Start with implementing media import (FR-005 through FR-009).
-

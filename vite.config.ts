@@ -16,8 +16,8 @@ export default defineConfig({
   envPrefix: ['VITE_', 'TAURI_'],
   resolve: {
     alias: {
-      '$lib': path.resolve('./src/lib')
-    }
+      $lib: path.resolve('./src/lib'),
+    },
   },
   build: {
     target: ['es2021', 'chrome100', 'safari13'],
@@ -27,6 +27,5 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-  }
+  },
 });
-

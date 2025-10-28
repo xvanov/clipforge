@@ -31,4 +31,3 @@ export function markProjectModified() {
     return p;
   });
 }
-

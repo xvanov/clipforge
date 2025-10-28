@@ -5,7 +5,7 @@
 **Status**: Draft  
 **Input**: User description: "Build a Desktop Video Editor - ClipForge"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Import and Basic Video Playback (Priority: P1) 🎯 MVP
 
@@ -153,17 +153,19 @@ A creator wants to enhance their video with text overlays, transitions between c
 - What happens when video file is moved or deleted after import while project is open?
 - How does system handle audio-only files (MP3, WAV) if user tries to import them?
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 **Core Application**
+
 - **FR-001**: System MUST launch as a native desktop application with a windowed interface
 - **FR-002**: System MUST provide a responsive interface that remains usable during media operations
 - **FR-003**: System MUST persist project state so users can close and reopen projects without losing work
 - **FR-004**: System MUST handle application crashes gracefully with auto-save recovery
 
 **Media Import & Management**
+
 - **FR-005**: System MUST support drag-and-drop import of video files (MP4, MOV, WebM formats)
 - **FR-006**: System MUST provide a file picker dialog for browsing and importing video files
 - **FR-007**: System MUST display imported clips in a media library panel with thumbnail previews
@@ -172,6 +174,7 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-010**: System MUST handle video files up to 4K resolution
 
 **Video Playback & Preview**
+
 - **FR-011**: System MUST provide a preview player that displays the current frame at the playhead position
 - **FR-012**: System MUST support play/pause controls for video playback
 - **FR-013**: System MUST play video with synchronized audio at the correct frame rate
@@ -180,6 +183,7 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-016**: System MUST display timecode showing current position and total duration
 
 **Timeline Editing**
+
 - **FR-017**: System MUST provide a visual timeline interface showing all clips with duration indicators
 - **FR-018**: System MUST support adding clips to timeline via drag-and-drop from media library
 - **FR-019**: System MUST allow reordering clips on timeline by dragging
@@ -192,12 +196,14 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-026**: System MUST support keyboard shortcuts for common operations (cut, copy, paste, delete, play/pause)
 
 **Multi-Track Support**
+
 - **FR-027**: System MUST support at least 2 video tracks (main track + overlay track)
 - **FR-028**: System MUST allow dragging clips between tracks
 - **FR-029**: System MUST composite multiple video tracks with upper tracks appearing as overlays
 - **FR-030**: System MUST allow resizing and repositioning overlay clips in the preview window
 
 **Recording Capabilities**
+
 - **FR-031**: System MUST support screen recording with selection of full screen or specific window
 - **FR-032**: System MUST support webcam recording with selection of available camera devices
 - **FR-033**: System MUST support simultaneous screen + webcam recording (picture-in-picture mode)
@@ -209,6 +215,7 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-039**: System MUST request appropriate system permissions (screen recording, camera, microphone) before first use
 
 **Export & Rendering**
+
 - **FR-040**: System MUST export timeline as MP4 video file with H.264 codec
 - **FR-041**: System MUST provide resolution options during export (720p, 1080p, source resolution)
 - **FR-042**: System MUST show progress indicator with percentage complete during export
@@ -220,6 +227,7 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-048**: System MUST handle export errors gracefully with clear error messages
 
 **Speech-to-Text Captions**
+
 - **FR-049**: System MUST extract audio track from video clips for speech recognition
 - **FR-050**: System MUST process audio through speech recognition engine to generate timestamped captions
 - **FR-051**: System MUST display generated captions on timeline synced to audio timestamps
@@ -229,6 +237,7 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-055**: System MUST export captions as burned-in text or separate SRT file
 
 **Effects & Enhancements**
+
 - **FR-056**: System MUST support adding text overlays to clips with font, size, color, and position controls
 - **FR-057**: System MUST support transitions between clips (fade, slide, dissolve)
 - **FR-058**: System MUST support visual filters (brightness, contrast, saturation adjustments)
@@ -237,12 +246,14 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **FR-061**: System MUST preview all effects in real-time during playback
 
 **Performance & Stability**
+
 - **FR-062**: System MUST launch in under 5 seconds
 - **FR-063**: System MUST handle timelines with 10+ clips without UI degradation
 - **FR-064**: System MUST prevent memory leaks during extended editing sessions (tested for 15+ minutes)
 - **FR-065**: System MUST maintain responsive UI during background operations (export, caption generation)
 
 **File Management**
+
 - **FR-066**: System MUST save project files that preserve timeline state, clip references, and edit decisions
 - **FR-067**: System MUST prompt user to save changes before closing app with unsaved work
 - **FR-068**: System MUST provide auto-save functionality every 2 minutes
@@ -266,16 +277,18 @@ A creator wants to enhance their video with text overlays, transitions between c
 
 - **Export Job**: Represents an export operation. Contains output file path, resolution, encoding settings, progress percentage, start time, estimated completion time, and status (pending/in-progress/completed/failed).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
 **Core Editing Workflow**
+
 - **SC-001**: Users can import a video file and see it in media library within 3 seconds
 - **SC-002**: Users can complete basic editing workflow (import, trim, export) in under 5 minutes for first-time use
 - **SC-003**: 90% of users successfully export their first video without encountering errors
 
 **Performance & Responsiveness**
+
 - **SC-004**: Application launches in under 5 seconds on standard hardware
 - **SC-005**: Timeline remains responsive (no UI lag) with 15+ clips on multiple tracks
 - **SC-006**: Video preview plays at minimum 30 fps during playback of 1080p content
@@ -284,31 +297,37 @@ A creator wants to enhance their video with text overlays, transitions between c
 - **SC-009**: Export completes without crashes for videos up to 10 minutes in length
 
 **Recording Capabilities**
+
 - **SC-010**: Screen recording captures at minimum 30 fps with audio synchronized within 50ms
 - **SC-011**: Users can start a recording within 3 clicks from app launch
 - **SC-012**: Recording automatically appears in media library within 2 seconds of stopping
 
 **Quality & Reliability**
+
 - **SC-013**: Exported videos maintain visual quality comparable to source videos
 - **SC-014**: Audio remains synchronized with video throughout exported content (no drift)
 - **SC-015**: Auto-save prevents data loss in 95% of unexpected app closures
 - **SC-016**: System handles permission denials gracefully with clear user guidance
 
 **Speech-to-Text Accuracy**
+
 - **SC-017**: Caption generation completes within 2x video duration (e.g., 60 seconds to process 30-second clip)
 - **SC-018**: Generated captions achieve 85% word accuracy for clear audio
 - **SC-019**: Caption timestamps sync to within 200ms of actual speech
 
 **User Experience**
+
 - **SC-020**: 80% of users complete their first export without consulting documentation
 - **SC-021**: Users can position overlay clips precisely within 5 seconds using drag controls
 - **SC-022**: Keyboard shortcuts reduce common task completion time by 40% versus mouse-only workflow
 - **SC-023**: Undo/redo functionality works reliably for 50+ consecutive operations
 
 **Cross-Platform Support**
+
 - **SC-024**: Application builds and runs on both macOS and Windows without platform-specific bugs
 - **SC-025**: Core features (import, edit, export) work identically across supported platforms
 
 **File Format Support**
+
 - **SC-026**: System successfully imports and edits 95% of common video files (MP4, MOV, WebM) without transcoding
 - **SC-027**: Exported files play correctly in standard video players (VLC, QuickTime, Windows Media Player)

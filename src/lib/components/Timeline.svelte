@@ -11,7 +11,7 @@
         // TODO: Initialize canvas timeline renderer
         ctx.fillStyle = '#2a2a2a';
         ctx.fillRect(0, 0, timelineElement.width, timelineElement.height);
-        
+
         ctx.fillStyle = '#888';
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
@@ -36,14 +36,9 @@
       <!-- TODO: Add timeline controls (zoom, snap, etc.) -->
     </div>
   </div>
-  
+
   <div class="timeline__canvas-container">
-    <canvas
-      bind:this={timelineElement}
-      width="1200"
-      height="300"
-      class="timeline__canvas"
-    />
+    <canvas bind:this={timelineElement} width="1200" height="300" class="timeline__canvas" />
   </div>
 </div>
 
@@ -80,4 +75,3 @@
     display: block;
   }
 </style>
-

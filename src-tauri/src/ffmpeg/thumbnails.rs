@@ -5,6 +5,7 @@ use tokio::sync::mpsc;
 use tokio::task;
 
 /// Request to generate a thumbnail
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ThumbnailRequest {
     pub clip_id: String,
@@ -14,6 +15,7 @@ pub struct ThumbnailRequest {
 }
 
 /// Result of thumbnail generation
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ThumbnailResult {
     pub clip_id: String,
@@ -21,13 +23,18 @@ pub struct ThumbnailResult {
 }
 
 /// Async queue for thumbnail generation
+#[allow(dead_code)]
 pub struct ThumbnailQueue {
     tx: mpsc::UnboundedSender<ThumbnailRequest>,
 }
 
+#[allow(dead_code)]
 impl ThumbnailQueue {
     /// Create a new thumbnail queue and spawn worker task
-    pub fn new() -> (Self, mpsc::UnboundedReceiver<Result<ThumbnailResult, String>>) {
+    pub fn new() -> (
+        Self,
+        mpsc::UnboundedReceiver<Result<ThumbnailResult, String>>,
+    ) {
         let (req_tx, mut req_rx) = mpsc::unbounded_channel::<ThumbnailRequest>();
         let (result_tx, result_rx) = mpsc::unbounded_channel::<Result<ThumbnailResult, String>>();
 
@@ -152,4 +159,3 @@ mod tests {
         }
     }
 }
-

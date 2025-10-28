@@ -27,6 +27,7 @@ erDiagram
 Represents a complete editing project with timeline state, media references, and export settings.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique project identifier
 - `name`: String - User-facing project name (default: "Untitled Project")
 - `created_at`: DateTime (ISO 8601) - Project creation timestamp
@@ -40,17 +41,20 @@ Represents a complete editing project with timeline state, media references, and
 - `last_auto_save`: DateTime (optional) - Most recent auto-save timestamp
 
 **Relationships**:
+
 - Has many `Track` (1:N)
 - Has many `MediaClip` (1:N)
 - Has one `ExportSettings` (1:1)
 
 **Validation Rules**:
+
 - `name` must not be empty (min 1 char, max 255 chars)
 - `version` must match semantic versioning pattern (e.g., "1.0.0")
 - `tracks` must contain at least 1 track
 - `modified_at` must be >= `created_at`
 
 **State Transitions**:
+
 ```
 [New] -> [Modified] -> [Saved] -> [Modified] -> ...
   |                       |
@@ -65,6 +69,7 @@ Represents a complete editing project with timeline state, media references, and
 Represents a video file imported into the media library.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique clip identifier
 - `name`: String - Display name (derived from filename)
 - `source_path`: String - Absolute path to original video file
@@ -84,11 +89,13 @@ Represents a video file imported into the media library.
 - `captions`: Array<Caption> (optional) - Generated/edited captions
 
 **Relationships**:
+
 - Referenced by many `TimelineClip` (1:N)
 - May have many `Caption` (1:N)
 - May be created by one `RecordingSession` (N:1)
 
 **Validation Rules**:
+
 - `source_path` must exist on filesystem (validated on load)
 - `duration` must be > 0
 - `width` and `height` must be > 0
@@ -97,6 +104,7 @@ Represents a video file imported into the media library.
 - `codec` must be in supported list: ["h264", "hevc", "vp9", "vp8", "prores"]
 
 **Derived Properties**:
+
 - `aspect_ratio`: width / height (e.g., 1.778 for 16:9)
 - `is_4k`: width >= 3840
 - `is_hd`: width >= 1920
@@ -109,6 +117,7 @@ Represents a video file imported into the media library.
 Represents an instance of a MediaClip placed on the timeline with edit decisions.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique timeline clip identifier
 - `media_clip_id`: String (UUID) - Reference to source MediaClip
 - `track_id`: String (UUID) - Parent track identifier
@@ -120,11 +129,13 @@ Represents an instance of a MediaClip placed on the timeline with edit decisions
 - `transform`: Transform (optional) - Position/scale for overlays
 
 **Relationships**:
+
 - Belongs to one `Track` (N:1)
 - References one `MediaClip` (N:1)
 - May have many `Effect` (1:N)
 
 **Validation Rules**:
+
 - `start_time` must be >= 0
 - `in_point` must be >= 0 and < source clip duration
 - `out_point` must be > `in_point` and <= source clip duration
@@ -132,11 +143,13 @@ Represents an instance of a MediaClip placed on the timeline with edit decisions
 - Clips on same track must not overlap (validated on insert/move)
 
 **Derived Properties**:
+
 - `duration`: out_point - in_point (effective clip length on timeline)
 - `end_time`: start_time + duration (where clip ends on timeline)
 - `trimmed_duration_display`: Format as "MM:SS"
 
 **State Transitions**:
+
 ```
 [Created] -> [On Timeline] -> [Trimmed] -> [Split] -> [Deleted]
                 |                 |
@@ -151,6 +164,7 @@ Represents an instance of a MediaClip placed on the timeline with edit decisions
 Represents a horizontal layer on the timeline that contains clips.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique track identifier
 - `name`: String - Track display name (e.g., "Track 1", "Overlay")
 - `type`: Enum - Track type: "main" | "overlay"
@@ -161,16 +175,19 @@ Represents a horizontal layer on the timeline that contains clips.
 - `volume`: Float - Track audio level (0.0 - 1.0, default: 1.0)
 
 **Relationships**:
+
 - Belongs to one `Project` (N:1)
 - Has many `TimelineClip` (1:N)
 
 **Validation Rules**:
+
 - `name` must not be empty (max 50 chars)
 - `order` must be >= 0
 - `volume` must be 0.0 <= volume <= 1.0
 - Track of type "main" must exist (at least one)
 
 **Derived Properties**:
+
 - `duration`: Maximum end_time of all clips on track
 - `clip_count`: Number of clips on track
 
@@ -181,6 +198,7 @@ Represents a horizontal layer on the timeline that contains clips.
 Represents a timestamped text caption/subtitle.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique caption identifier
 - `media_clip_id`: String (UUID) - Parent clip reference
 - `text`: String - Caption text content
@@ -191,15 +209,18 @@ Represents a timestamped text caption/subtitle.
 - `styling`: CaptionStyle (optional) - Font, color, position
 
 **Relationships**:
+
 - Belongs to one `MediaClip` (N:1)
 
 **Validation Rules**:
+
 - `text` must not be empty (max 500 chars per caption)
 - `start_time` must be >= 0 and < parent clip duration
 - `end_time` must be > `start_time` and <= parent clip duration
 - `confidence` (if present) must be 0.0 <= confidence <= 1.0
 
 **Derived Properties**:
+
 - `duration`: end_time - start_time
 - `word_count`: Number of words in text
 
@@ -210,6 +231,7 @@ Represents a timestamped text caption/subtitle.
 Represents a visual or audio modification applied to a timeline clip.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique effect identifier
 - `timeline_clip_id`: String (UUID) - Parent clip reference
 - `type`: Enum - Effect type: "transition" | "filter" | "text_overlay" | "audio_adjustment"
@@ -218,50 +240,56 @@ Represents a visual or audio modification applied to a timeline clip.
 - `enabled`: Boolean - Effect active state (default: true)
 
 **Relationships**:
+
 - Belongs to one `TimelineClip` (N:1)
 
 **Validation Rules**:
+
 - `type` must be valid enum value
 - `parameters` schema validated per effect type
 
 **Effect Type Parameters**:
 
 **Transition** (fade, slide, dissolve):
+
 ```json
 {
-  "duration": 1.0,        // Transition duration in seconds
-  "style": "fade",        // "fade" | "slide" | "dissolve"
-  "direction": "in"       // "in" | "out"
+  "duration": 1.0, // Transition duration in seconds
+  "style": "fade", // "fade" | "slide" | "dissolve"
+  "direction": "in" // "in" | "out"
 }
 ```
 
 **Filter** (brightness, contrast, saturation):
+
 ```json
 {
-  "brightness": 1.2,      // Multiplier (1.0 = no change)
+  "brightness": 1.2, // Multiplier (1.0 = no change)
   "contrast": 1.1,
   "saturation": 0.9
 }
 ```
 
 **Text Overlay**:
+
 ```json
 {
   "text": "Hello World",
   "font": "Arial",
   "size": 48,
   "color": "#FFFFFF",
-  "position": {"x": 100, "y": 100},
-  "alignment": "center"   // "left" | "center" | "right"
+  "position": { "x": 100, "y": 100 },
+  "alignment": "center" // "left" | "center" | "right"
 }
 ```
 
 **Audio Adjustment**:
+
 ```json
 {
-  "volume": 0.8,          // 0.0 - 1.0
-  "fade_in": 0.5,         // Fade in duration (seconds)
-  "fade_out": 0.5         // Fade out duration (seconds)
+  "volume": 0.8, // 0.0 - 1.0
+  "fade_in": 0.5, // Fade in duration (seconds)
+  "fade_out": 0.5 // Fade out duration (seconds)
 }
 ```
 
@@ -272,6 +300,7 @@ Represents a visual or audio modification applied to a timeline clip.
 Represents an active or completed screen/webcam recording.
 
 **Fields**:
+
 - `id`: String (UUID) - Unique session identifier
 - `type`: Enum - Recording type: "screen" | "webcam" | "screen_webcam"
 - `status`: Enum - Session status: "preparing" | "recording" | "paused" | "stopped" | "failed"
@@ -288,15 +317,18 @@ Represents an active or completed screen/webcam recording.
 - `created_media_clip_id`: String (UUID, optional) - MediaClip created from recording
 
 **Relationships**:
+
 - May create one `MediaClip` (1:1, after recording complete)
 
 **Validation Rules**:
+
 - `type` must be valid enum value
 - `resolution` must be valid format: "{width}x{height}"
 - `fps` must be 15, 24, 30, or 60
 - If type = "screen_webcam", both `screen_source` and `camera_device` must be set
 
 **State Transitions**:
+
 ```
 [Preparing] -> [Recording] <-> [Paused] -> [Stopped] -> [Media Created]
      |              |
@@ -311,6 +343,7 @@ Represents an active or completed screen/webcam recording.
 Represents export configuration for rendering timeline to video file.
 
 **Fields**:
+
 - `resolution`: Enum - Output resolution: "source" | "2160p" | "1440p" | "1080p" | "720p" | "480p"
 - `codec`: Enum - Video codec: "h264" | "hevc" | "vp9"
 - `quality`: Enum - Encoding quality: "high" | "medium" | "low"
@@ -320,11 +353,13 @@ Represents export configuration for rendering timeline to video file.
 - `hardware_acceleration`: Boolean - Enable hardware encoding (default: true)
 
 **Validation Rules**:
+
 - `resolution` must be valid enum value
 - `fps` (if set) must be 24, 30, or 60
 - `audio_bitrate` must be 128, 192, or 320
 
 **Derived Properties**:
+
 - `output_extension`: File extension based on codec (".mp4", ".webm")
 - `estimated_file_size`: Rough estimate based on duration and quality
 
@@ -335,6 +370,7 @@ Represents export configuration for rendering timeline to video file.
 Represents position and scale transformations for overlay clips.
 
 **Fields**:
+
 - `x`: Integer - Horizontal position in pixels (0 = left edge)
 - `y`: Integer - Vertical position in pixels (0 = top edge)
 - `width`: Integer - Scaled width in pixels
@@ -342,6 +378,7 @@ Represents position and scale transformations for overlay clips.
 - `rotation`: Float - Rotation angle in degrees (default: 0.0)
 
 **Validation Rules**:
+
 - `x`, `y` must be >= 0
 - `width`, `height` must be > 0
 - `rotation` range: -360.0 <= rotation <= 360.0
@@ -353,6 +390,7 @@ Represents position and scale transformations for overlay clips.
 Represents styling for captions.
 
 **Fields**:
+
 - `font`: String - Font family (default: "Arial")
 - `size`: Integer - Font size in points (default: 24)
 - `color`: String - Text color (hex format, e.g., "#FFFFFF")
@@ -361,6 +399,7 @@ Represents styling for captions.
 - `alignment`: Enum - Text alignment: "left" | "center" | "right" (default: "center")
 
 **Validation Rules**:
+
 - `font` must not be empty
 - `size` range: 12 <= size <= 72
 - `color` must match hex pattern: `^#[0-9A-Fa-f]{6}$`
@@ -455,6 +494,7 @@ Represents styling for captions.
 **Format**: JSON (human-readable)
 
 **Example**:
+
 ```json
 {
   "version": "1.0.0",
@@ -571,16 +611,16 @@ CREATE INDEX idx_recording_status ON recording_sessions(status);
 ```typescript
 function validateProject(project: Project): ValidationResult {
   if (!project.name || project.name.length === 0) {
-    return error("Project name cannot be empty");
+    return error('Project name cannot be empty');
   }
   if (project.tracks.length === 0) {
-    return error("Project must have at least one track");
+    return error('Project must have at least one track');
   }
   if (project.modified_at < project.created_at) {
-    return error("Modified timestamp cannot be before created timestamp");
+    return error('Modified timestamp cannot be before created timestamp');
   }
   // Check all media_clip_ids in timeline exist in media_library
-  const mediaIds = new Set(project.media_library.map(m => m.id));
+  const mediaIds = new Set(project.media_library.map((m) => m.id));
   for (const track of project.tracks) {
     for (const clip of track.clips) {
       if (!mediaIds.has(clip.media_clip_id)) {
@@ -597,16 +637,16 @@ function validateProject(project: Project): ValidationResult {
 ```typescript
 function validateTimelineClips(track: Track): ValidationResult {
   const clips = track.clips.sort((a, b) => a.start_time - b.start_time);
-  
+
   for (let i = 0; i < clips.length - 1; i++) {
     const current = clips[i];
     const next = clips[i + 1];
-    
+
     if (current.end_time > next.start_time) {
       return error(`Clips overlap: ${current.id} and ${next.id}`);
     }
   }
-  
+
   return success();
 }
 ```
@@ -618,6 +658,7 @@ function validateTimelineClips(track: Track): ValidationResult {
 **Total Entities**: 8 core entities + 2 embedded objects
 
 **Key Design Principles**:
+
 - **Normalized references**: TimelineClip references MediaClip (no duplication)
 - **Derived properties**: Compute duration, end_time on demand (not stored)
 - **Validation at boundaries**: Validate on create/update, not on read
@@ -625,4 +666,3 @@ function validateTimelineClips(track: Track): ValidationResult {
 - **Type safety**: Strong typing for all enums and fields
 
 **Next Steps**: Generate API contracts (Tauri commands) based on these entities
-

@@ -29,10 +29,7 @@ export async function getMediaMetadata(clipId: string): Promise<MediaClip> {
   }
 }
 
-export async function generateThumbnailForClip(
-  clipId: string,
-  timestamp: number
-): Promise<string> {
+export async function generateThumbnailForClip(clipId: string, timestamp: number): Promise<string> {
   try {
     return await tauriInvoke('generate_thumbnail_for_clip', { clipId, timestamp });
   } catch (error) {
@@ -142,10 +139,7 @@ export async function deleteTimelineClip(clipId: string): Promise<void> {
   }
 }
 
-export async function createTrack(
-  name: string,
-  type: 'main' | 'overlay'
-): Promise<Track> {
+export async function createTrack(name: string, type: 'main' | 'overlay'): Promise<Track> {
   try {
     return await tauriInvoke('create_track', { name, trackType: type });
   } catch (error) {

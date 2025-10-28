@@ -61,8 +61,8 @@ pub async fn extract_metadata(file_path: &str) -> Result<VideoMetadata, String> 
     }
 
     let json_output = String::from_utf8_lossy(&output.stdout);
-    let ffprobe_data: FfprobeOutput =
-        serde_json::from_str(&json_output).map_err(|e| format!("Failed to parse ffprobe output: {}", e))?;
+    let ffprobe_data: FfprobeOutput = serde_json::from_str(&json_output)
+        .map_err(|e| format!("Failed to parse ffprobe output: {}", e))?;
 
     // Find video and audio streams
     let video_stream = ffprobe_data
@@ -79,10 +79,7 @@ pub async fn extract_metadata(file_path: &str) -> Result<VideoMetadata, String> 
     // Extract video properties
     let width = video_stream.width.ok_or("Width not found")?;
     let height = video_stream.height.ok_or("Height not found")?;
-    let codec = video_stream
-        .codec_name
-        .clone()
-        .ok_or("Codec not found")?;
+    let codec = video_stream.codec_name.clone().ok_or("Codec not found")?;
 
     // Parse frame rate (e.g., "30/1" -> 30.0)
     let fps = if let Some(fps_str) = &video_stream.r_frame_rate {
@@ -152,4 +149,3 @@ mod tests {
         assert!((parse_frame_rate("30000/1001").unwrap() - 29.97).abs() < 0.01);
     }
 }
-

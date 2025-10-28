@@ -3,4 +3,4 @@
 
 pub mod cache;
 
-pub use cache::{CacheDb, initialize_cache};
+pub use cache::CacheDb;

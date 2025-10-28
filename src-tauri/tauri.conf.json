@@ -17,7 +17,7 @@
         "asset": true,
         "assetScope": [
           "$APPDATA/**",
-          "$DOCUMENT/**", 
+          "$DOCUMENT/**",
           "$DESKTOP/**",
           "$VIDEO/**",
           "$HOME/.clipforge/**"
@@ -79,4 +79,3 @@
     ]
   }
 }
-

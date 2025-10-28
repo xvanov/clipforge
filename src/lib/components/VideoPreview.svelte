@@ -18,11 +18,11 @@
     try {
       playbackError = '';
       isLoadingProxy = false;
-      
+
       // Get playback path from backend (returns proxy if available, or source path)
       const playbackPath = await invoke<string>('load_clip_for_playback', {
         clipId: clip.id,
-        useProxy: true  // Request proxy for better web compatibility
+        useProxy: true, // Request proxy for better web compatibility
       });
 
       console.log('Playback path from backend:', playbackPath);
@@ -34,7 +34,7 @@
           // Poll for proxy availability
           pollForProxy(clip.id);
         }
-        
+
         // Use the path returned from backend and convert to Tauri asset URL
         const assetUrl = convertFileSrc(playbackPath);
         console.log('Loading video from asset URL:', assetUrl);
@@ -51,27 +51,27 @@
   function needsProxy(codec: string): boolean {
     const codecLower = codec.toLowerCase();
     const webCompatible = ['h264', 'vp8', 'vp9', 'av1'];
-    return !webCompatible.some(c => codecLower.includes(c));
+    return !webCompatible.some((c) => codecLower.includes(c));
   }
 
   // Poll for proxy generation completion
   async function pollForProxy(clipId: string) {
     const maxAttempts = 60; // 60 seconds max
     let attempts = 0;
-    
+
     const interval = setInterval(async () => {
       attempts++;
-      
+
       try {
         // Re-fetch clip metadata to check if proxy is ready
         const updatedClip = await invoke<MediaClip>('get_media_metadata', { clipId });
-        
+
         if (updatedClip.proxy_path) {
           // Proxy is ready! Reload video with proxy
           isLoadingProxy = false;
           currentClip = updatedClip;
           clearInterval(interval);
-          
+
           if (videoElement) {
             videoElement.src = convertFileSrc(updatedClip.proxy_path);
             videoElement.load();
@@ -80,7 +80,7 @@
       } catch (err) {
         console.error('Error checking proxy status:', err);
       }
-      
+
       if (attempts >= maxAttempts) {
         isLoadingProxy = false;
         playbackError = 'Proxy generation timed out. Using original file.';
@@ -96,7 +96,7 @@
     if (isPlaying) {
       videoElement.pause();
     } else {
-      videoElement.play().catch(err => {
+      videoElement.play().catch((err) => {
         playbackError = `Playback failed: ${err}`;
       });
     }
@@ -134,7 +134,7 @@
 
   function formatTime(seconds: number): string {
     if (!isFinite(seconds)) return '0:00';
-    
+
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -146,14 +146,12 @@
   }
 
   // Listen for clip selection from MediaLibrary
-  let mounted = false;
-  
   if (typeof window !== 'undefined') {
     const handleClipSelect = (event: Event) => {
       const customEvent = event as CustomEvent<MediaClip>;
       currentClip = customEvent.detail;
     };
-    
+
     window.addEventListener('clipselect', handleClipSelect);
   }
 </script>
@@ -163,7 +161,7 @@
     {#if playbackError}
       <div class="error">{playbackError}</div>
     {/if}
-    
+
     {#if isLoadingProxy}
       <div class="loading-overlay">
         <div class="spinner"></div>
@@ -171,7 +169,7 @@
         <p class="hint">This may take a moment for the first playback</p>
       </div>
     {/if}
-    
+
     {#if !currentClip}
       <div class="placeholder">
         <p>No clip selected</p>
@@ -183,7 +181,7 @@
         on:timeupdate={handleTimeUpdate}
         on:play={handlePlay}
         on:pause={handlePause}
-        on:error={() => playbackError = 'Video playback error'}
+        on:error={() => (playbackError = 'Video playback error')}
       >
         <track kind="captions" />
       </video>
@@ -191,9 +189,9 @@
   </div>
 
   <div class="controls">
-    <button 
-      class="play-btn" 
-      on:click={togglePlay} 
+    <button
+      class="play-btn"
+      on:click={togglePlay}
       disabled={!currentClip}
       title={isPlaying ? 'Pause' : 'Play'}
     >
@@ -447,7 +445,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .loading-overlay p {

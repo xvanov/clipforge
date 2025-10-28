@@ -1,8 +1,9 @@
+use super::clip::MediaClip;
+use super::timeline::{Track, TrackType};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use super::timeline::{Track, TrackType};
-use super::clip::MediaClip;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
     pub id: String,
@@ -18,6 +19,7 @@ pub struct Project {
     pub last_auto_save: Option<DateTime<Utc>>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportSettings {
     pub resolution: Resolution,
@@ -29,6 +31,7 @@ pub struct ExportSettings {
     pub hardware_acceleration: bool,
 }
 
+#[allow(dead_code, clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Resolution {
@@ -45,6 +48,7 @@ pub enum Resolution {
     SD,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Codec {
@@ -53,6 +57,7 @@ pub enum Codec {
     Vp9,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Quality {
@@ -61,6 +66,7 @@ pub enum Quality {
     Low,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioCodec {
@@ -83,6 +89,7 @@ impl Default for ExportSettings {
     }
 }
 
+#[allow(dead_code)]
 impl Project {
     pub fn new(name: String) -> Self {
         let mut project = Project {
@@ -100,8 +107,10 @@ impl Project {
         };
 
         // Create default main track
-        project.tracks.push(Track::new("Main Track".to_string(), TrackType::Main));
-        
+        project
+            .tracks
+            .push(Track::new("Main Track".to_string(), TrackType::Main));
+
         project
     }
 
@@ -109,4 +118,3 @@ impl Project {
         self.modified_at = Utc::now();
     }
 }
-

@@ -5,6 +5,14 @@
 
 **Tests**: Tests follow TDD for critical paths (media import, FFmpeg operations, timeline state, export pipeline). Trivial operations may skip tests per constitution guidance. Focus on meaningful test coverage that catches production issues.
 
+**CI/CD Validation**: After completing each phase, run all CI/CD checks locally to ensure everything passes before moving to the next phase. See README.md for complete instructions.
+
+```bash
+# Quick CI/CD validation (run from project root)
+npm test && npm run lint && npm run type-check && npm run format:check && \
+cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check
+```
+
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -35,6 +43,8 @@
 - [x] T009 Create project directory structure per plan.md (commands/, ffmpeg/, models/, storage/, platform/)
 - [x] T010 [P] Add test fixtures directory tests/fixtures/ (created structure)
 
+**Checkpoint**: ✅ Phase 1 complete! Run CI/CD checks locally before proceeding to Phase 2.
+
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites) ✅ COMPLETE
@@ -60,7 +70,7 @@
 - [x] T025 Implement cache schema (media_clips, auto_saves tables) in src-tauri/src/storage/cache.rs
 - [x] T026 Create FFmpeg wrapper module in src-tauri/src/ffmpeg/mod.rs (stub created)
 
-**Checkpoint**: ✅ Foundation complete - Phase 2 done! User story implementation can now begin.
+**Checkpoint**: ✅ Foundation complete - Phase 2 done! Run CI/CD checks locally before starting user story implementation.
 
 ---
 
@@ -88,7 +98,7 @@
 - [x] T040 [US1] Implement media library state synchronization between Rust and Svelte stores
 - [x] T040b [US1] Implement proxy video generation for MOV and non-web-compatible formats in src-tauri/src/ffmpeg/proxy.rs (background async)
 
-**Checkpoint**: At this point, User Story 1 should be fully functional - users can import and play videos
+**Checkpoint**: ✅ User Story 1 complete! Users can import and play videos. **Run full CI/CD validation before proceeding to Phase 4.**
 
 ---
 
@@ -122,7 +132,7 @@
 - [ ] T060 [US2] Implement timeline state validation (prevent overlaps) in src-tauri/src/commands/timeline.rs
 - [ ] T061 [US2] Update main app layout to include Timeline component below preview
 
-**Checkpoint**: At this point, User Stories 1 AND 2 both work - complete editing workflow (import → edit)
+**Checkpoint**: ✅ User Stories 1 AND 2 complete! Users can import, play, and edit videos on timeline. **Run full CI/CD validation before proceeding to Phase 5.**
 
 ---
 
@@ -149,7 +159,7 @@
 - [ ] T074 [US3] Add Export button to main app toolbar in src/App.svelte
 - [ ] T075 [US3] Implement partial file cleanup on cancel/error in src-tauri/src/commands/export.rs
 
-**Checkpoint**: MVP COMPLETE - Users can import, edit, and export videos (full workflow)
+**Checkpoint**: 🎉 **MVP COMPLETE!** Users can import, edit, and export videos (full workflow). **Run full CI/CD validation to confirm MVP stability.**
 
 ---
 
@@ -177,7 +187,7 @@
 - [ ] T089 [US4] Wire up recording completion to media library (auto-import) in src-tauri/src/commands/recording.rs
 - [ ] T090 [US4] Add Recording panel to main app layout in src/App.svelte
 
-**Checkpoint**: Users can now record screen/webcam in addition to importing files
+**Checkpoint**: ✅ User Story 4 complete! Users can record screen/webcam in addition to importing files. **Run full CI/CD validation before proceeding to Phase 7.**
 
 ---
 
@@ -200,7 +210,7 @@
 - [ ] T099 [US5] Add track creation UI in Timeline.svelte
 - [ ] T100 [US5] Implement track layer priority (z-index) in Timeline.svelte
 
-**Checkpoint**: Users can create professional multi-track compositions
+**Checkpoint**: ✅ User Story 5 complete! Users can create professional multi-track compositions. **Run full CI/CD validation before proceeding to Phase 8.**
 
 ---
 
@@ -221,7 +231,7 @@
 - [ ] T109 Implement "Save before close" prompt in src/App.svelte
 - [ ] T110 Add File menu with New/Open/Save actions in src/App.svelte
 
-**Checkpoint**: Projects can be saved and resumed
+**Checkpoint**: ✅ Phase 8 complete! Projects can be saved and resumed. **Run full CI/CD validation before proceeding to Phase 9.**
 
 ---
 
@@ -243,6 +253,8 @@
 - [ ] T122 Verify CI/CD pipeline runs successfully for Windows build
 - [ ] T123 Test production build on macOS (create .app bundle)
 - [ ] T124 Test production build on Windows (create .msi installer)
+
+**Checkpoint**: 🎉 **PRODUCTION READY!** All polish complete, builds verified on all platforms. **Run final CI/CD validation before release.**
 
 ---
 
@@ -359,6 +371,7 @@ With multiple developers:
 **Total Tasks**: 124 tasks
 
 **Tasks by Phase**:
+
 - Phase 1 (Setup): 10 tasks
 - Phase 2 (Foundational): 16 tasks (CRITICAL - blocks everything)
 - Phase 3 (US1 - Import & Playback): 14 tasks
@@ -374,12 +387,12 @@ With multiple developers:
 **Parallel Tasks**: 49 tasks marked [P] can run in parallel within their phase
 
 **Estimated Timeline**:
+
 - MVP (P1 stories): 3-4 weeks for experienced developer
-- + Recording (P2): +1 week
-- + Multi-track (P3): +1 week
-- + Project Management: +3-4 days
-- + Polish: +1 week
+- - Recording (P2): +1 week
+- - Multi-track (P3): +1 week
+- - Project Management: +3-4 days
+- - Polish: +1 week
 - **Total**: 6-8 weeks for full v1.0
 
 **Ready for**: `/speckit.implement` command to begin implementation
-

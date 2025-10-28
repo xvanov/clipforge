@@ -1,7 +1,6 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api';
   import { open } from '@tauri-apps/api/dialog';
-  import { convertFileSrc } from '@tauri-apps/api/tauri';
   import { mediaLibrary, addClipToLibrary } from '$lib/stores/media-library';
   import MediaClipCard from './MediaClipCard.svelte';
   import type { MediaClip } from '$lib/types/clip';
@@ -19,15 +18,19 @@
 
   async function handleDrop(event: DragEvent) {
     event.preventDefault();
-    
+
     if (!event.dataTransfer) return;
-    
+
     const files = Array.from(event.dataTransfer.files);
     const videoPaths = files
       .filter((file: File) => {
         const ext = file.name.toLowerCase();
-        return ext.endsWith('.mp4') || ext.endsWith('.mov') || 
-               ext.endsWith('.avi') || ext.endsWith('.webm');
+        return (
+          ext.endsWith('.mp4') ||
+          ext.endsWith('.mov') ||
+          ext.endsWith('.avi') ||
+          ext.endsWith('.webm')
+        );
       })
       .map((file: File & { path?: string }) => file.path || file.name);
 
@@ -41,17 +44,19 @@
     try {
       const selected = await open({
         multiple: true,
-        filters: [{
-          name: 'Video',
-          extensions: ['mp4', 'mov', 'avi', 'webm', 'mkv']
-        }]
+        filters: [
+          {
+            name: 'Video',
+            extensions: ['mp4', 'mov', 'avi', 'webm', 'mkv'],
+          },
+        ],
       });
 
       if (selected) {
         const paths = Array.isArray(selected) ? selected : [selected];
         await importFiles(paths);
       }
-    } catch (err: any) {
+    } catch (err) {
       errorMessage = `Failed to open file picker: ${err}`;
     }
   }
@@ -62,8 +67,8 @@
 
     try {
       const result = await invoke<{
-        clips: MediaClip[],
-        errors: Array<{ path: string, error: string }>
+        clips: MediaClip[];
+        errors: Array<{ path: string; error: string }>;
       }>('import_media_files', { paths });
 
       // Add successfully imported clips to store
@@ -76,7 +81,7 @@
         const errorPaths = result.errors.map((e: { path: string }) => e.path).join(', ');
         errorMessage = `Failed to import: ${errorPaths}`;
       }
-    } catch (err: any) {
+    } catch (err) {
       errorMessage = `Import failed: ${err}`;
     } finally {
       importing = false;
@@ -90,7 +95,7 @@
   }
 </script>
 
-<div 
+<div
   class="media-library"
   role="region"
   aria-label="Media Library"
@@ -116,10 +121,7 @@
       </div>
     {:else}
       {#each $mediaLibrary as clip (clip.id)}
-        <MediaClipCard 
-          {clip} 
-          on:click={() => handleClipSelect(clip)} 
-        />
+        <MediaClipCard {clip} on:click={() => handleClipSelect(clip)} />
       {/each}
     {/if}
   </div>

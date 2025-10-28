@@ -47,7 +47,7 @@ impl CacheDb {
             ],
         )
         .map_err(|e| format!("Failed to insert media clip: {}", e))?;
-        
+
         Ok(())
     }
 }
@@ -56,12 +56,12 @@ impl CacheDb {
 /// Creates the database file and sets up schema if it doesn't exist
 pub fn initialize_cache(cache_path: &PathBuf) -> SqliteResult<Connection> {
     let conn = Connection::open(cache_path)?;
-    
+
     // Enable foreign keys
     conn.execute("PRAGMA foreign_keys = ON", [])?;
-    
+
     create_schema(&conn)?;
-    
+
     Ok(conn)
 }
 
@@ -117,7 +117,12 @@ fn create_schema(conn: &Connection) -> SqliteResult<()> {
 }
 
 /// Clean up old auto-saves (keep only last N saves per project)
-pub fn cleanup_old_autosaves(conn: &Connection, project_id: &str, keep_count: usize) -> SqliteResult<usize> {
+#[allow(dead_code)]
+pub fn cleanup_old_autosaves(
+    conn: &Connection,
+    project_id: &str,
+    keep_count: usize,
+) -> SqliteResult<usize> {
     conn.execute(
         "DELETE FROM auto_saves 
          WHERE project_id = ?1 
@@ -134,16 +139,15 @@ pub fn cleanup_old_autosaves(conn: &Connection, project_id: &str, keep_count: us
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
     use tempfile::TempDir;
 
     #[test]
     fn test_initialize_cache() {
         let temp_dir = TempDir::new().unwrap();
         let cache_path = temp_dir.path().join("test_cache.db");
-        
+
         let conn = initialize_cache(&cache_path).unwrap();
-        
+
         // Verify tables were created
         let table_count: i32 = conn
             .query_row(
@@ -152,7 +156,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        
+
         assert_eq!(table_count, 2, "Should create 2 tables");
     }
 
@@ -160,11 +164,11 @@ mod tests {
     fn test_schema_idempotent() {
         let temp_dir = TempDir::new().unwrap();
         let cache_path = temp_dir.path().join("test_cache.db");
-        
+
         // Initialize twice - should not error
         let _conn1 = initialize_cache(&cache_path).unwrap();
         let conn2 = initialize_cache(&cache_path).unwrap();
-        
+
         // Verify schema still valid
         let table_count: i32 = conn2
             .query_row(
@@ -173,7 +177,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        
+
         assert!(table_count >= 2, "Tables should still exist");
     }
 
@@ -182,9 +186,9 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let cache_path = temp_dir.path().join("test_cache.db");
         let conn = initialize_cache(&cache_path).unwrap();
-        
+
         let project_id = "test-project-123";
-        
+
         // Insert 5 auto-saves
         for i in 0..5 {
             conn.execute(
@@ -199,11 +203,11 @@ mod tests {
                 ],
             ).unwrap();
         }
-        
+
         // Keep only 3 most recent
         let deleted = cleanup_old_autosaves(&conn, project_id, 3).unwrap();
         assert_eq!(deleted, 2, "Should delete 2 old auto-saves");
-        
+
         // Verify count
         let remaining: i32 = conn
             .query_row(
@@ -212,8 +216,7 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        
+
         assert_eq!(remaining, 3, "Should have 3 auto-saves remaining");
     }
 }
-

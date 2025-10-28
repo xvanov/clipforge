@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Track {
     pub id: String,
@@ -13,6 +14,7 @@ pub struct Track {
     pub volume: f32,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TrackType {
@@ -20,6 +22,7 @@ pub enum TrackType {
     Overlay,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimelineClip {
     pub id: String,
@@ -32,6 +35,7 @@ pub struct TimelineClip {
     pub transform: Option<Transform>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transform {
     pub x: i32,
@@ -41,6 +45,7 @@ pub struct Transform {
     pub rotation: f32,
 }
 
+#[allow(dead_code)]
 impl Track {
     pub fn new(name: String, track_type: TrackType) -> Self {
         Track {
@@ -68,6 +73,7 @@ impl Track {
     }
 }
 
+#[allow(dead_code)]
 impl TimelineClip {
     pub fn new(
         media_clip_id: String,
@@ -96,4 +102,3 @@ impl TimelineClip {
         self.start_time + self.duration()
     }
 }
-

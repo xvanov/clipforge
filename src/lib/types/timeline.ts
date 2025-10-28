@@ -29,4 +29,3 @@ export interface Transform {
   height: number;
   rotation: number;
 }
-

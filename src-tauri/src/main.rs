@@ -14,10 +14,10 @@ mod storage;
 #[cfg(target_os = "macos")]
 mod platform;
 
-use commands::{media, playback, project, timeline};
 use commands::media::AppState;
-use storage::CacheDb;
+use commands::{media, playback, project, timeline};
 use std::sync::{Arc, Mutex};
+use storage::CacheDb;
 
 fn main() {
     // Initialize cache database
@@ -30,8 +30,7 @@ fn main() {
     std::fs::create_dir_all(cache_path.parent().unwrap())
         .expect("Failed to create cache directory");
 
-    let cache_db = CacheDb::new(&cache_path)
-        .expect("Failed to initialize cache database");
+    let cache_db = CacheDb::new(&cache_path).expect("Failed to initialize cache database");
 
     // Initialize app state
     let app_state = AppState {
@@ -46,15 +45,12 @@ fn main() {
             media::import_media_files,
             media::get_media_metadata,
             media::generate_thumbnail_for_clip,
-            
             // Playback commands
             playback::load_clip_for_playback,
-            
             // Project commands
             project::create_new_project,
             project::save_project,
             project::load_project,
-            
             // Timeline commands
             timeline::add_clip_to_timeline,
             timeline::update_timeline_clip,

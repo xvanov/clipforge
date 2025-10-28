@@ -40,7 +40,7 @@
     <img src={getThumbnailSrc(clip)} alt={clip.name} />
     <div class="duration">{formatDuration(clip.duration)}</div>
   </div>
-  
+
   <div class="info">
     <div class="name" title={clip.name}>{clip.name}</div>
     <div class="metadata">

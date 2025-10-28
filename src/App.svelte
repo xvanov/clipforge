@@ -1,7 +1,6 @@
 <script lang="ts">
   import MediaLibrary from '$lib/components/MediaLibrary.svelte';
   import VideoPreview from '$lib/components/VideoPreview.svelte';
-  import { mediaLibrary } from '$lib/stores/media-library';
 </script>
 
 <main class="app">
@@ -37,7 +36,8 @@
   :global(body) {
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: #1a1a1a;
     color: #fff;
     overflow: hidden;

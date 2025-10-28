@@ -19,4 +19,3 @@ export interface MediaClip {
   imported_at: string; // ISO 8601 datetime
   captions: string[]; // Caption IDs
 }
-

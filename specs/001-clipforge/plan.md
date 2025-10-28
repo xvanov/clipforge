@@ -16,6 +16,7 @@ ClipForge is a native desktop video editor that enables creators to record (scre
 **Language/Version**: Rust 1.75+ (Tauri backend), TypeScript 5.0+ with Svelte 4.0+ (frontend)
 
 **Primary Dependencies**:
+
 - **Tauri 1.5+**: Desktop framework (Rust backend + web frontend)
 - **Svelte 4.0+**: Reactive frontend framework
 - **FFmpeg 6.0+**: Media processing (CLI invoked from Rust)
@@ -26,17 +27,20 @@ ClipForge is a native desktop video editor that enables creators to record (scre
 - **tauri-plugin-fs-extra**: Enhanced filesystem operations
 - **tauri-plugin-dialog**: Native file picker dialogs
 
-**Storage**: 
+**Storage**:
+
 - **Project files**: JSON format storing timeline state, clip references, edit decisions (stored on local filesystem)
 - **Media cache**: Thumbnail images and proxy videos (SQLite database for metadata, files on disk)
 - **Auto-save**: Periodic JSON snapshots to prevent data loss
 
 **Testing**:
+
 - **Rust backend**: `cargo test` for unit tests, integration tests for FFmpeg pipelines
 - **Frontend**: Vitest for component tests, Playwright for E2E tests
 - **CI/CD**: GitHub Actions with platform-specific runners (macOS, Windows)
 
-**Target Platform**: 
+**Target Platform**:
+
 - **Primary**: macOS 11+ (Intel + Apple Silicon)
 - **Secondary**: Windows 10+ (x64)
 - **Future**: Linux (Ubuntu 20.04+)
@@ -44,6 +48,7 @@ ClipForge is a native desktop video editor that enables creators to record (scre
 **Project Type**: Desktop application (Tauri hybrid architecture - Rust + Svelte frontend)
 
 **Performance Goals**:
+
 - Timeline UI: 60 fps rendering, sub-100ms interaction response
 - Video playback: 30+ fps for 1080p, 24+ fps for 4K
 - Export: Real-time encoding (1 minute video exports in ~1 minute at 1080p)
@@ -51,6 +56,7 @@ ClipForge is a native desktop video editor that enables creators to record (scre
 - Memory: Under 2GB for typical editing sessions
 
 **Constraints**:
+
 - Cross-platform: Must build and run identically on macOS and Windows
 - Offline-first: No network requirements for core editing (cloud export optional)
 - Native performance: Timeline must handle 50+ clips without lag
@@ -58,6 +64,7 @@ ClipForge is a native desktop video editor that enables creators to record (scre
 - FFmpeg bundling: Ship static FFmpeg binary with app (licensing compliance)
 
 **Scale/Scope**:
+
 - Project size: Support videos up to 4K resolution, projects with 100+ clips
 - File sizes: Handle individual files up to 10GB
 - Export duration: Videos up to 60 minutes
@@ -66,35 +73,41 @@ ClipForge is a native desktop video editor that enables creators to record (scre
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### Pre-Phase 0 Check: ✅ PASSED
 
 **Security & Secrets Management**
+
 - ✅ No secrets, API keys, or credentials required for core functionality
 - ✅ Cloud export (stretch goal) will require user-configured OAuth tokens (not handled in app)
 - ✅ FFmpeg bundled as binary, no external service dependencies
 
 **Memory Bank Management**
+
 - ✅ No memory bank exists yet (new project)
 - ⚠️ **Action**: Create memory bank after Phase 1 to document architecture decisions
 
 **Test-Driven Development**
+
 - ✅ Test harness planned: cargo test (Rust), Vitest (Svelte), Playwright (E2E)
 - ✅ TDD workflow: Write tests for each user story before implementation
 - ✅ Critical paths identified: video import, timeline operations, FFmpeg export, screen recording
 
 **Resource Constraints Reality**
+
 - ✅ Fast feedback: Rust unit tests (<5s), Svelte component tests (<10s)
 - ✅ E2E tests target <30s per scenario
 - ✅ FFmpeg operations testable with short sample videos (avoid slow integration tests)
 
 **Simple Implementation Philosophy**
+
 - ✅ KISS: Start with single-track timeline, add multi-track in P3
 - ✅ Minimal dependencies: Tauri + Svelte + FFmpeg covers 90% of needs
 - ✅ Progressive enhancement: MVP (P1) → Recording (P2) → Advanced (P3-P5)
 
 **Continuous Integration & Delivery**
+
 - ✅ CI/CD from day one: GitHub Actions workflow planned
 - ✅ Local validation: `cargo test`, `cargo clippy`, `npm test`, `npm run build` before commits
 - ✅ Platform-specific: macOS and Windows runners for cross-platform validation
@@ -210,7 +223,7 @@ clipforge/
 └── README.md                  # Project documentation
 ```
 
-**Structure Decision**: 
+**Structure Decision**:
 
 This is a **desktop application** using Tauri's hybrid architecture. The Rust backend (`src-tauri/`) handles performance-critical operations (FFmpeg integration, file I/O, system APIs for screen recording), while the Svelte frontend (`src/`) provides the reactive UI. This structure separates concerns:
 
@@ -234,6 +247,7 @@ Project adheres to all constitution principles without requiring complexity just
 **Date**: 2025-10-27
 
 **Deliverables**:
+
 - ✅ `research.md`: Technology stack validated, all decisions documented
 - ✅ All NEEDS CLARIFICATION items resolved
 - ✅ FFmpeg integration strategy defined
@@ -242,6 +256,7 @@ Project adheres to all constitution principles without requiring complexity just
 - ✅ Security considerations addressed
 
 **Key Decisions**:
+
 1. **Desktop Framework**: Tauri 1.5+ (native performance, small bundle)
 2. **Frontend**: Svelte 4.0+ with TypeScript (reactive, performant)
 3. **Media Processing**: FFmpeg 6.0+ CLI (industry standard, comprehensive)
@@ -258,12 +273,14 @@ Project adheres to all constitution principles without requiring complexity just
 **Date**: 2025-10-27
 
 **Deliverables**:
+
 - ✅ `data-model.md`: 8 core entities + 2 embedded objects defined
 - ✅ `contracts/tauri-commands.md`: 28 Tauri commands documented
 - ✅ `quickstart.md`: Development environment setup guide
 - ✅ Agent context updated (Cursor IDE)
 
 **Entity Model Summary**:
+
 - **Project**: Timeline state, media library, export settings
 - **MediaClip**: Imported video metadata, thumbnails, proxies
 - **TimelineClip**: Clip instances on timeline with edit decisions
@@ -284,29 +301,35 @@ Project adheres to all constitution principles without requiring complexity just
 ### Re-validation After Design
 
 **Security & Secrets Management**
+
 - ✅ No secrets in data model or API contracts
 - ✅ File paths validated before FFmpeg operations
 - ✅ Command injection prevented (Rust command builders)
 
 **Memory Bank Management**
+
 - ⚠️ **Action Required**: Create memory bank after initial implementation
 - Document: Architecture decisions, FFmpeg patterns, Canvas optimizations
 
 **Test-Driven Development**
+
 - ✅ Test structure defined in project layout
 - ✅ Unit tests (cargo test), component tests (Vitest), E2E tests (Playwright)
 - ✅ Test fixtures directory planned
 
 **Resource Constraints Reality**
+
 - ✅ Fast feedback loops: <5s Rust tests, <10s frontend tests, <30s E2E
 - ✅ Short sample videos for integration tests
 
 **Simple Implementation Philosophy**
+
 - ✅ MVP scope clear (P1: import → edit → export)
 - ✅ Progressive enhancement (P2: recording, P3+: advanced features)
 - ✅ Minimal dependencies (Tauri + Svelte + FFmpeg core stack)
 
 **Continuous Integration & Delivery**
+
 - ✅ CI/CD pipeline defined (GitHub Actions, macOS + Windows)
 - ✅ Local validation checklist in quickstart guide
 - ✅ Pre-commit validation script documented
@@ -318,6 +341,7 @@ Project adheres to all constitution principles without requiring complexity just
 No constitution violations. Design maintains alignment with all core principles.
 
 **Recommendations**:
+
 1. Set up CI/CD pipeline immediately after project init
 2. Write tests for media import first (TDD approach)
 3. Create memory bank after MVP implementation
@@ -329,6 +353,7 @@ No constitution violations. Design maintains alignment with all core principles.
 **Ready for**: `/speckit.tasks` command to generate task breakdown
 
 **Implementation Order** (recommended):
+
 1. **Phase 1: Setup** (T001-T003)
    - Initialize Tauri project
    - Set up Svelte frontend
@@ -351,7 +376,6 @@ No constitution violations. Design maintains alignment with all core principles.
 
 5. **Phase 5+**: Enhanced features (P2-P5 user stories)
 
-
 ---
 
 ## Summary
@@ -359,6 +383,7 @@ No constitution violations. Design maintains alignment with all core principles.
 **Planning Phase**: COMPLETE ✅
 
 **Documents Generated**:
+
 1. ✅ `plan.md` (this file) - Implementation plan with tech stack
 2. ✅ `research.md` - Technology decisions and rationale
 3. ✅ `data-model.md` - Entity models and relationships

@@ -233,7 +233,7 @@ describe('Timeline Store', () => {
   it('should pause the timeline', () => {
     play();
     expect(get(isPlaying)).toBe(true);
-    
+
     pause();
     expect(get(isPlaying)).toBe(false);
   });
@@ -246,12 +246,11 @@ describe('Timeline Store', () => {
   it('should update playhead position multiple times', () => {
     seek(10);
     expect(get(playheadPosition)).toBe(10);
-    
+
     seek(20);
     expect(get(playheadPosition)).toBe(20);
-    
+
     seek(5);
     expect(get(playheadPosition)).toBe(5);
   });
 });
-

@@ -23,4 +23,3 @@ export function removeClipFromLibrary(clipId: string) {
 export function getClipById(clipId: string): MediaClip | undefined {
   return get(mediaLibrary).find((c) => c.id === clipId);
 }
-

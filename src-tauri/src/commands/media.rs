@@ -94,29 +94,26 @@ async fn import_single_file(path: &str, state: &State<'_, AppState>) -> Result<M
         std::fs::create_dir_all(&proxy_dir)
             .map_err(|e| format!("Failed to create proxy directory: {}", e))?;
         let proxy_file = proxy_dir.join(format!("{}.mp4", clip_id));
-        let proxy_path_str = proxy_file
-            .to_str()
-            .ok_or("Invalid proxy path")?
-            .to_string();
+        let proxy_path_str = proxy_file.to_str().ok_or("Invalid proxy path")?.to_string();
 
         // Generate proxy in background (don't block import)
         let path_clone = path.to_string();
         let proxy_clone = proxy_path_str.clone();
         let clip_id_clone = clip_id.clone();
         let state_clone = state.inner().clone();
-        
+
         tokio::spawn(async move {
             match generate_proxy(&path_clone, &proxy_clone).await {
                 Ok(_) => {
                     println!("✓ Proxy generated for clip {}", clip_id_clone);
                     println!("  Proxy path: {}", proxy_clone);
-                    
+
                     // Update the clip in the library with the proxy path
                     let mut library = state_clone.media_library.lock().unwrap();
                     if let Some(clip) = library.iter_mut().find(|c| c.id == clip_id_clone) {
                         clip.proxy_path = Some(proxy_clone.clone());
                         println!("  Updated clip in library with proxy path");
-                        
+
                         // Update cache database
                         let cache_db = state_clone.cache_db.lock().unwrap();
                         if let Err(e) = cache_db.insert_media_clip(clip) {
@@ -125,11 +122,17 @@ async fn import_single_file(path: &str, state: &State<'_, AppState>) -> Result<M
                             println!("  Updated cache database with proxy path");
                         }
                     } else {
-                        eprintln!("  ERROR: Could not find clip {} in library to update proxy path", clip_id_clone);
+                        eprintln!(
+                            "  ERROR: Could not find clip {} in library to update proxy path",
+                            clip_id_clone
+                        );
                     }
                 }
                 Err(e) => {
-                    eprintln!("Warning: Failed to generate proxy for {}: {}", clip_id_clone, e);
+                    eprintln!(
+                        "Warning: Failed to generate proxy for {}: {}",
+                        clip_id_clone, e
+                    );
                 }
             }
         });
@@ -142,9 +145,7 @@ async fn import_single_file(path: &str, state: &State<'_, AppState>) -> Result<M
     };
 
     // Get file size
-    let file_size = std::fs::metadata(&file_path)
-        .map(|m| m.len())
-        .unwrap_or(0);
+    let file_size = std::fs::metadata(&file_path).map(|m| m.len()).unwrap_or(0);
 
     // Get file name for display
     let name = file_path
