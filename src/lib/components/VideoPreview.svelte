@@ -1,17 +1,27 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import { invoke } from '@tauri-apps/api';
   import { convertFileSrc } from '@tauri-apps/api/tauri';
   import type { MediaClip } from '$lib/types/clip';
 
   export let currentClip: MediaClip | null = null;
+  export let currentTime: number = 0;
+
+  const dispatch = createEventDispatcher();
 
   let videoElement: HTMLVideoElement;
   let isPlaying = false;
-  let currentTime = 0;
+  let localTime = 0;
   let duration = 0;
   let volume = 1.0;
   let playbackError = '';
   let isLoadingProxy = false;
+  let isSeeking = false;
+
+  // Sync external currentTime prop with video element (but don't interfere during normal playback)
+  $: if (videoElement && !isPlaying && Math.abs(currentTime - localTime) > 0.1) {
+    videoElement.currentTime = currentTime;
+  }
 
   // T037: Load clip for playback
   async function loadClip(clip: MediaClip) {
@@ -119,8 +129,9 @@
 
   function handleTimeUpdate() {
     if (videoElement) {
-      currentTime = videoElement.currentTime;
+      localTime = videoElement.currentTime;
       duration = videoElement.duration || 0;
+      // Don't dispatch to avoid feedback loop - just update local state
     }
   }
 
@@ -199,12 +210,12 @@
     </button>
 
     <div class="timeline">
-      <span class="time">{formatTime(currentTime)}</span>
+      <span class="time">{formatTime(localTime)}</span>
       <input
         type="range"
         min="0"
         max={duration || 0}
-        value={currentTime}
+        value={localTime}
         on:input={seek}
         disabled={!currentClip}
         class="seek-slider"

@@ -2,6 +2,7 @@
 
 use crate::ffmpeg::{extract_metadata, generate_proxy, generate_thumbnail, needs_proxy};
 use crate::models::clip::MediaClip;
+use crate::models::project::Project;
 use crate::storage::cache::CacheDb;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -13,6 +14,7 @@ use uuid::Uuid;
 pub struct AppState {
     pub cache_db: Arc<Mutex<CacheDb>>,
     pub media_library: Arc<Mutex<Vec<MediaClip>>>,
+    pub project: Arc<Mutex<Option<Project>>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

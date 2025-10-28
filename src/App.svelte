@@ -1,6 +1,28 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import MediaLibrary from '$lib/components/MediaLibrary.svelte';
   import VideoPreview from '$lib/components/VideoPreview.svelte';
+  import Timeline from '$lib/components/Timeline.svelte';
+  import { timelineStore } from '$lib/stores/timeline';
+
+  let videoCurrentTime = 0;
+  let timelineDuration = 0;
+
+  // Initialize default track on mount
+  onMount(async () => {
+    try {
+      console.log('App.svelte: Creating default track...');
+      const track = await timelineStore.createTrack('Main Track', 'main');
+      console.log('App.svelte: Track created successfully:', track);
+    } catch (error) {
+      console.error('Failed to create default track:', error);
+    }
+  });
+
+  function handleTimeUpdate(event: CustomEvent<{ time: number }>) {
+    // Only update timeline when user isn't playing video
+    videoCurrentTime = event.detail.time;
+  }
 </script>
 
 <main class="app">
@@ -21,12 +43,14 @@
 
     <section class="main-area">
       <div class="preview-section">
-        <VideoPreview />
+        <VideoPreview 
+          currentTime={0}
+          on:timeupdate={handleTimeUpdate}
+        />
       </div>
 
-      <!-- Timeline will be added in Phase 4 (User Story 2) -->
-      <div class="timeline-placeholder">
-        <p>Timeline (coming in Phase 4)</p>
+      <div class="timeline-section">
+        <Timeline bind:currentTime={videoCurrentTime} bind:duration={timelineDuration} />
       </div>
     </section>
   </div>
@@ -113,14 +137,10 @@
     flex-direction: column;
   }
 
-  .timeline-placeholder {
-    height: 200px;
-    background: #252525;
+  .timeline-section {
+    height: 250px;
+    flex-shrink: 0;
+    background: #0a0a0a;
     border-top: 1px solid #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-    font-style: italic;
   }
 </style>
