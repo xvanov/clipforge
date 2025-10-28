@@ -123,27 +123,27 @@ cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Create Timeline Svelte component in src/lib/components/Timeline.svelte
-- [ ] T042 [P] [US2] Create TrackView Svelte component in src/lib/components/TrackView.svelte
-- [ ] T043 [P] [US2] Create TimelineClipView Svelte component in src/lib/components/TimelineClipView.svelte
-- [ ] T044 [P] [US2] Create timeline Canvas renderer in src/lib/canvas/timeline-renderer.ts
-- [ ] T045 [P] [US2] Create clip renderer in src/lib/canvas/clip-renderer.ts
-- [ ] T046 [P] [US2] Create playhead renderer in src/lib/canvas/playhead-renderer.ts
-- [ ] T047 [US2] Implement canvas rendering loop with requestAnimationFrame in timeline-renderer.ts
-- [ ] T048 [US2] Implement add_clip_to_timeline Tauri command in src-tauri/src/commands/timeline.rs
-- [ ] T049 [US2] Implement update_timeline_clip Tauri command in src-tauri/src/commands/timeline.rs
-- [ ] T050 [US2] Implement split_timeline_clip Tauri command in src-tauri/src/commands/timeline.rs
-- [ ] T051 [US2] Implement delete_timeline_clip Tauri command in src-tauri/src/commands/timeline.rs
-- [ ] T052 [US2] Implement create_track Tauri command in src-tauri/src/commands/timeline.rs
-- [ ] T053 [US2] Implement drag-and-drop from media library to timeline in Timeline.svelte
-- [ ] T054 [US2] Implement clip reordering via drag in Timeline.svelte
-- [ ] T055 [US2] Implement trim controls (in/out point markers) in TimelineClipView.svelte
-- [ ] T056 [US2] Implement split at playhead functionality in Timeline.svelte
-- [ ] T057 [US2] Implement timeline zoom controls in Timeline.svelte
-- [ ] T058 [US2] Implement timeline scrubbing (drag playhead) in Timeline.svelte
-- [ ] T059 [US2] Wire up timeline playback to VideoPreview (switch clips on transition)
-- [ ] T060 [US2] Implement timeline state validation (prevent overlaps) in src-tauri/src/commands/timeline.rs
-- [ ] T061 [US2] Update main app layout to include Timeline component below preview
+- [x] T041 [P] [US2] Create Timeline Svelte component in src/lib/components/Timeline.svelte
+- [x] T042 [P] [US2] Create TrackView Svelte component in src/lib/components/TrackView.svelte
+- [x] T043 [P] [US2] Create TimelineClipView Svelte component in src/lib/components/TimelineClipView.svelte
+- [x] T044 [P] [US2] Create timeline Canvas renderer in src/lib/canvas/timeline-renderer.ts
+- [x] T045 [P] [US2] Create clip renderer in src/lib/canvas/clip-renderer.ts
+- [x] T046 [P] [US2] Create playhead renderer in src/lib/canvas/playhead-renderer.ts
+- [x] T047 [US2] Implement canvas rendering loop with requestAnimationFrame in timeline-renderer.ts
+- [x] T048 [US2] Implement add_clip_to_timeline Tauri command in src-tauri/src/commands/timeline.rs
+- [x] T049 [US2] Implement update_timeline_clip Tauri command in src-tauri/src/commands/timeline.rs
+- [x] T050 [US2] Implement split_timeline_clip Tauri command in src-tauri/src/commands/timeline.rs
+- [x] T051 [US2] Implement delete_timeline_clip Tauri command in src-tauri/src/commands/timeline.rs
+- [x] T052 [US2] Implement create_track Tauri command in src-tauri/src/commands/timeline.rs
+- [x] T053 [US2] Implement drag-and-drop from media library to timeline in Timeline.svelte
+- [x] T054 [US2] Implement clip reordering via drag in Timeline.svelte
+- [x] T055 [US2] Implement trim controls (in/out point markers) in TimelineClipView.svelte
+- [x] T056 [US2] Implement split at playhead functionality in Timeline.svelte
+- [x] T057 [US2] Implement timeline zoom controls in Timeline.svelte
+- [x] T058 [US2] Implement timeline scrubbing (drag playhead) in Timeline.svelte
+- [x] T059 [US2] Wire up timeline playback to VideoPreview (switch clips on transition)
+- [x] T060 [US2] Implement timeline state validation (prevent overlaps) in src-tauri/src/commands/timeline.rs
+- [x] T061 [US2] Update main app layout to include Timeline component below preview
 
 **Checkpoint**: ✅ User Stories 1 AND 2 complete! Users can import, play, and edit videos on timeline. **Run full CI/CD validation before proceeding to Phase 5.**
 

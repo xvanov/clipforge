@@ -33,9 +33,28 @@
     // Fallback placeholder
     return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="112"%3E%3Crect width="200" height="112" fill="%23333"/%3E%3Ctext x="50%25" y="50%25" fill="%23666" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14"%3ENo Thumbnail%3C/text%3E%3C/svg%3E';
   }
+
+  // Enable drag to timeline
+  function handleDragStart(event: DragEvent) {
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'copy';
+      const clipJson = JSON.stringify(clip);
+      event.dataTransfer.setData('application/json', clipJson);
+    }
+  }
+
+  function handleDragEnd(_event: DragEvent) {
+    // Drag operation complete
+  }
 </script>
 
-<button class="clip-card" on:click>
+<button
+  class="clip-card"
+  on:click
+  draggable="true"
+  on:dragstart={handleDragStart}
+  on:dragend={handleDragEnd}
+>
   <div class="thumbnail">
     <img src={getThumbnailSrc(clip)} alt={clip.name} />
     <div class="duration">{formatDuration(clip.duration)}</div>

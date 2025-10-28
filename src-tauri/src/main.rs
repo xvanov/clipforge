@@ -32,10 +32,11 @@ fn main() {
 
     let cache_db = CacheDb::new(&cache_path).expect("Failed to initialize cache database");
 
-    // Initialize app state
+    // Initialize app state with empty project
     let app_state = AppState {
         cache_db: Arc::new(Mutex::new(cache_db)),
         media_library: Arc::new(Mutex::new(Vec::new())),
+        project: Arc::new(Mutex::new(None)),
     };
 
     tauri::Builder::default()
