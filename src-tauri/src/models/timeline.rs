@@ -89,7 +89,7 @@ impl TimelineClip {
     }
 
     pub fn duration(&self) -> f64 {
-        self.out_point - self.in_point
+        (self.out_point - self.in_point).max(0.0)
     }
 
     pub fn end_time(&self) -> f64 {

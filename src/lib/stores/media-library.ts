@@ -1,4 +1,4 @@
-import { writable, derived, type Writable } from 'svelte/store';
+import { writable, derived, get, type Writable } from 'svelte/store';
 import type { MediaClip } from '$lib/types/clip';
 
 // Media library store - holds all imported clips
@@ -21,10 +21,6 @@ export function removeClipFromLibrary(clipId: string) {
 }
 
 export function getClipById(clipId: string): MediaClip | undefined {
-  let clip: MediaClip | undefined;
-  mediaLibrary.subscribe((clips) => {
-    clip = clips.find((c) => c.id === clipId);
-  })();
-  return clip;
+  return get(mediaLibrary).find((c) => c.id === clipId);
 }
 

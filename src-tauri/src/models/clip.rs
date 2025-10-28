@@ -60,6 +60,9 @@ impl MediaClip {
     }
 
     pub fn aspect_ratio(&self) -> f64 {
+        if self.height == 0 {
+            return 0.0;
+        }
         self.width as f64 / self.height as f64
     }
 

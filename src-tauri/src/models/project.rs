@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use super::timeline::Track;
+use super::timeline::{Track, TrackType};
 use super::clip::MediaClip;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -109,6 +109,4 @@ impl Project {
         self.modified_at = Utc::now();
     }
 }
-
-use super::timeline::TrackType;
 
