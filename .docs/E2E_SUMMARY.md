@@ -196,4 +196,3 @@ $: {
 **Recommendation**: Add the debug logging above and check the console logs
 
 Once track creation works, you'll see "Tracks: 1" and then we can test the drag/drop functionality manually!
-

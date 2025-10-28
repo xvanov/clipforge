@@ -6,28 +6,23 @@
 
   export let track: Track;
   export let pixelsPerSecond: number = 50;
-  export let scrollLeft: number = 0;
   export let currentTime: number = 0;
 
   const dispatch = createEventDispatcher();
 
   let trackElement: HTMLDivElement;
-  let isDraggingClip: boolean = false;
-  let draggedClipId: string | null = null;
 
-  function handleClipDragStart(event: CustomEvent) {
-    isDraggingClip = true;
-    draggedClipId = event.detail.clipId;
+  function handleClipDragStart(_event: CustomEvent) {
+    // Clip drag started
   }
 
   function handleClipDragEnd() {
-    isDraggingClip = false;
-    draggedClipId = null;
+    // Clip drag ended
   }
 
   function handleClipMoved(event: CustomEvent) {
     const { clipId, newStartTime } = event.detail;
-    
+
     dispatch('clip-moved', {
       clipId,
       newStartTime,
@@ -36,7 +31,6 @@
   }
 
   function handleClipTrimmed(event: CustomEvent) {
-    const { clipId, inPoint, outPoint, startTime } = event.detail;
     dispatch('clip-trimmed', event.detail);
   }
 
@@ -60,7 +54,7 @@
     }
   }
 
-  function handleTrackDragLeave(event: DragEvent) {
+  function handleTrackDragLeave(_event: DragEvent) {
     isHoveringTrack = false;
   }
 
@@ -68,18 +62,21 @@
     event.preventDefault();
     event.stopPropagation();
     isHoveringTrack = false;
-    
+
     // Bubble up to parent Timeline component by dispatching custom event
     dispatch('track-drop', { event, track });
   }
 </script>
 
-<div class="track-view" 
+<div
+  class="track-view"
   bind:this={trackElement}
   class:dropping={isHoveringTrack}
   on:dragover={handleTrackDragOver}
   on:dragleave={handleTrackDragLeave}
   on:drop={handleTrackDrop}
+  role="region"
+  aria-label="Track: {track.name}"
 >
   <div class="track-header">
     <div class="track-name">{track.name}</div>
@@ -108,7 +105,7 @@
   <div class="track-content">
     <div class="track-clips">
       {#each track.clips as timelineClip (timelineClip.id)}
-        {@const mediaClip = $mediaLibrary.find(mc => mc.id === timelineClip.media_clip_id)}
+        {@const mediaClip = $mediaLibrary.find((mc) => mc.id === timelineClip.media_clip_id)}
         <TimelineClipView
           clip={timelineClip}
           {pixelsPerSecond}

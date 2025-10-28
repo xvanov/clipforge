@@ -21,12 +21,13 @@
   $: tracks = $tracksStore;
 
   // Calculate total timeline duration from all clips
-  $: totalDuration = Math.max(
-    duration,
-    ...tracks.flatMap(track => 
-      track.clips.map(clip => clip.start_time + (clip.out_point - clip.in_point))
-    )
-  ) || 60; // Minimum 60 seconds
+  $: totalDuration =
+    Math.max(
+      duration,
+      ...tracks.flatMap((track) =>
+        track.clips.map((clip) => clip.start_time + (clip.out_point - clip.in_point))
+      )
+    ) || 60; // Minimum 60 seconds
 
   // Calculate minimum width needed to show all content
   $: timelineContentWidth = Math.max(
@@ -197,7 +198,7 @@
     // Don't set it to false when moving between child elements
     const target = event.currentTarget as HTMLElement;
     const relatedTarget = event.relatedTarget as HTMLElement;
-    
+
     if (!target.contains(relatedTarget)) {
       isDraggingOverTimeline = false;
     }
@@ -207,14 +208,14 @@
     // Handle both native DragEvent and CustomEvent from TrackView
     let dragEvent: DragEvent;
     let targetTrack: Track | undefined;
-    
+
     if (event instanceof CustomEvent) {
       dragEvent = event.detail.event;
       targetTrack = event.detail.track;
     } else {
       dragEvent = event;
     }
-    
+
     dragEvent.preventDefault();
     dragEvent.stopPropagation();
     isDraggingOverTimeline = false;
@@ -225,7 +226,7 @@
     }
 
     const clipData = dragEvent.dataTransfer.getData('application/json');
-    
+
     if (!clipData) {
       console.error('No clip data in dataTransfer');
       return;
@@ -233,7 +234,7 @@
 
     try {
       const mediaClip: MediaClip = JSON.parse(clipData);
-      
+
       const rect = timelineContainer.getBoundingClientRect();
       const x = dragEvent.clientX - rect.left + scrollLeft;
       let dropTime = x / pixelsPerSecond;
@@ -256,14 +257,14 @@
       const trackToUse = targetTrack || tracks[0];
       if (trackToUse) {
         // in_point starts at 0, out_point is the media duration (full clip)
-        const result = await timelineStore.addClipToTimeline(
+        await timelineStore.addClipToTimeline(
           mediaClip.id,
           trackToUse.id,
           dropTime,
           0, // in_point: start of media
           mediaClip.duration // out_point: end of media (use full clip duration)
         );
-        
+
         console.log(`Added "${mediaClip.name}" to timeline at ${dropTime.toFixed(2)}s`);
       } else {
         console.error('No tracks available');
@@ -281,10 +282,10 @@
   // Handle clip movement (drag to reorder)
   async function handleClipMoved(event: CustomEvent) {
     const { clipId, newStartTime } = event.detail;
-    
+
     try {
       await timelineStore.updateClip(clipId, {
-        startTime: newStartTime
+        startTime: newStartTime,
       });
     } catch (error) {
       console.error('Failed to move clip:', error);
@@ -294,13 +295,13 @@
   // Handle clip trimming
   async function handleClipTrimmed(event: CustomEvent) {
     const { clipId, inPoint, outPoint, startTime } = event.detail;
-    
+
     try {
-      const updates: any = {};
+      const updates: Record<string, number> = {};
       if (inPoint !== undefined) updates.inPoint = inPoint;
       if (outPoint !== undefined) updates.outPoint = outPoint;
       if (startTime !== undefined) updates.startTime = startTime;
-      
+
       await timelineStore.updateClip(clipId, updates);
     } catch (error) {
       console.error('Failed to trim clip:', error);
@@ -363,18 +364,20 @@
       on:dragleave={handleDragLeave}
       on:drop={handleDrop}
     >
-      <div class="timeline-tracks-inner" style="width: {timelineContentWidth}px; min-height: 100px;">
-      {#each tracks as trackItem (trackItem.id)}
-        <TrackView 
-          track={trackItem} 
-          {pixelsPerSecond} 
-          {scrollLeft} 
-          bind:currentTime
-          on:track-drop={handleDrop}
-          on:clip-moved={handleClipMoved}
-          on:clip-trimmed={handleClipTrimmed}
-        />
-      {/each}
+      <div
+        class="timeline-tracks-inner"
+        style="width: {timelineContentWidth}px; min-height: 100px;"
+      >
+        {#each tracks as trackItem (trackItem.id)}
+          <TrackView
+            track={trackItem}
+            {pixelsPerSecond}
+            bind:currentTime
+            on:track-drop={handleDrop}
+            on:clip-moved={handleClipMoved}
+            on:clip-trimmed={handleClipTrimmed}
+          />
+        {/each}
       </div>
     </div>
   </div>

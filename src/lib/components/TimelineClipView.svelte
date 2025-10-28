@@ -19,7 +19,7 @@
   let originalStartTime: number = 0;
   let originalInPoint: number = 0;
   let originalOutPoint: number = 0;
-  
+
   // Local preview state during drag (updated immediately for visual feedback)
   let previewStartTime: number | null = null;
   let previewInPoint: number | null = null;
@@ -27,13 +27,13 @@
 
   $: duration = clip.out_point - clip.in_point;
   $: endTime = clip.start_time + duration;
-  
+
   // Use preview values during drag, otherwise use actual clip values
   $: displayStartTime = previewStartTime !== null ? previewStartTime : clip.start_time;
   $: displayInPoint = previewInPoint !== null ? previewInPoint : clip.in_point;
   $: displayOutPoint = previewOutPoint !== null ? previewOutPoint : clip.out_point;
   $: displayDuration = displayOutPoint - displayInPoint;
-  
+
   $: leftPosition = displayStartTime * pixelsPerSecond;
   $: width = displayDuration * pixelsPerSecond;
 
@@ -98,13 +98,15 @@
         clipId: clip.id,
         newStartTime: previewStartTime,
       });
-    } else if ((isTrimmingStart || isTrimmingEnd) && 
-               (previewInPoint !== null || previewOutPoint !== null || previewStartTime !== null)) {
-      const updates: any = { clipId: clip.id };
+    } else if (
+      (isTrimmingStart || isTrimmingEnd) &&
+      (previewInPoint !== null || previewOutPoint !== null || previewStartTime !== null)
+    ) {
+      const updates: Record<string, number | string> = { clipId: clip.id };
       if (previewInPoint !== null) updates.inPoint = previewInPoint;
       if (previewOutPoint !== null) updates.outPoint = previewOutPoint;
       if (previewStartTime !== null && isTrimmingStart) updates.startTime = previewStartTime;
-      
+
       dispatch('trimmed', updates);
     }
 
@@ -112,7 +114,7 @@
     previewStartTime = null;
     previewInPoint = null;
     previewOutPoint = null;
-    
+
     isDragging = false;
     isTrimmingStart = false;
     isTrimmingEnd = false;

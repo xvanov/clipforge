@@ -172,4 +172,3 @@ Set up Tauri WebDriver to test the actual desktop app. See:
 **TLDR**: E2E tests run against web (no Tauri APIs). Use `npm run tauri:dev` + manual testing until we set up Tauri WebDriver.
 
 **Recommended Action**: Manual test in desktop app (takes 2 minutes, shows real bug status)
-

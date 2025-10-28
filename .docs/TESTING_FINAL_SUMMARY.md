@@ -126,4 +126,3 @@ If bug exists, it's in one of:
 **Result**: Know definitively if bug exists or not
 
 **Manual Test Guide**: `cat tests/e2e/manual-timeline-test.md`
-

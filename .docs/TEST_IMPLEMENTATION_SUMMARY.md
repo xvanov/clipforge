@@ -147,4 +147,3 @@ npm test -- src/lib/stores/timeline.test.ts --watch
 **Test Suite**: PASSING  
 **Ready for**: Bug fixing and manual testing  
 **Date**: October 28, 2025
-

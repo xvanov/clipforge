@@ -272,4 +272,3 @@ Then in the Playwright UI:
 **Setup Time**: < 1 minute
 **First Run**: `npm run test:e2e:ui`
 **Last Updated**: October 28, 2025
-

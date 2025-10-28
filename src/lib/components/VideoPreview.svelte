@@ -35,7 +35,7 @@
     const relativeTime = currentTime - clipStartTime;
     const videoTime = clipInPoint + relativeTime;
     const timeDiff = Math.abs(videoTime - localTime);
-    
+
     // Only update if there's a significant difference (>0.1s) to avoid jitter
     if (timeDiff > 0.1) {
       videoElement.currentTime = Math.max(clipInPoint, Math.min(videoTime, clipOutPoint));
@@ -47,7 +47,7 @@
     try {
       playbackError = '';
       isLoadingProxy = false;
-      
+
       // Remember if we were playing
       const wasPlaying = isPlaying;
 
@@ -71,24 +71,24 @@
         const assetUrl = convertFileSrc(playbackPath);
         console.log('Loading video from asset URL:', assetUrl);
         videoElement.src = assetUrl;
-        
+
         // Set up one-time loadeddata listener to resume playback and seek
         const handleLoaded = () => {
           if (videoElement) {
             // Seek to correct position
             const videoTime = clipInPoint + (currentTime - clipStartTime);
             videoElement.currentTime = Math.max(clipInPoint, Math.min(videoTime, clipOutPoint));
-            
+
             // Resume playback if we were playing
             if (wasPlaying) {
-              videoElement.play().catch(err => {
+              videoElement.play().catch((err) => {
                 console.error('Failed to resume playback:', err);
               });
             }
           }
           videoElement?.removeEventListener('loadeddata', handleLoaded);
         };
-        
+
         videoElement.addEventListener('loadeddata', handleLoaded);
         videoElement.load();
       }
@@ -172,7 +172,7 @@
     if (videoElement) {
       localTime = videoElement.currentTime;
       duration = videoElement.duration || 0;
-      
+
       // Check if we've reached the out_point of the current clip
       if (clipOutPoint > 0 && localTime >= clipOutPoint) {
         // Pause at the out_point
@@ -181,7 +181,7 @@
         videoElement.currentTime = clipOutPoint;
         return;
       }
-      
+
       // Dispatch time updates to parent
       dispatch('timeupdate', { time: localTime });
     }

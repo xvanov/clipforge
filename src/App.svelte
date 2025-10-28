@@ -19,7 +19,7 @@
   // Subscribe to tracks to find current clip
   $: if ($tracks.length > 0 && $tracks[0].clips.length > 0) {
     // Find the clip at current playhead position
-    const currentClip = $tracks[0].clips.find(clip => {
+    const currentClip = $tracks[0].clips.find((clip) => {
       const clipStart = clip.start_time;
       const clipEnd = clip.start_time + (clip.out_point - clip.in_point);
       return videoCurrentTime >= clipStart && videoCurrentTime < clipEnd;
@@ -29,14 +29,16 @@
       // Only update if clip changed
       if (currentClip.id !== currentTimelineClipId) {
         // Find the MediaClip from media library
-        const mediaClip = $mediaLibrary.find(mc => mc.id === currentClip.media_clip_id);
+        const mediaClip = $mediaLibrary.find((mc) => mc.id === currentClip.media_clip_id);
         if (mediaClip) {
           currentClipForPreview = mediaClip;
           currentTimelineClipId = currentClip.id;
           currentClipStartTime = currentClip.start_time;
           currentClipInPoint = currentClip.in_point;
           currentClipOutPoint = currentClip.out_point;
-          console.log(`Switching to clip ${mediaClip.name} at timeline ${videoCurrentTime.toFixed(2)}s`);
+          console.log(
+            `Switching to clip ${mediaClip.name} at timeline ${videoCurrentTime.toFixed(2)}s`
+          );
         }
       }
     }
@@ -61,13 +63,14 @@
       const videoTime = event.detail.time;
       const relativeVideoTime = videoTime - currentClipInPoint;
       videoCurrentTime = currentClipStartTime + relativeVideoTime;
-      
+
       // Check if we've reached the end of this clip
       const clipEnd = currentClipStartTime + (currentClipOutPoint - currentClipInPoint);
-      if (videoCurrentTime >= clipEnd - 0.05) { // Small buffer to catch the end
+      if (videoCurrentTime >= clipEnd - 0.05) {
+        // Small buffer to catch the end
         // Try to move to next clip
         const sortedClips = [...$tracks[0].clips].sort((a, b) => a.start_time - b.start_time);
-        const currentIndex = sortedClips.findIndex(c => c.id === currentTimelineClipId);
+        const currentIndex = sortedClips.findIndex((c) => c.id === currentTimelineClipId);
         if (currentIndex >= 0 && currentIndex < sortedClips.length - 1) {
           // Move to next clip
           const nextClip = sortedClips[currentIndex + 1];
@@ -108,7 +111,7 @@
 
     <section class="main-area">
       <div class="preview-section">
-        <VideoPreview 
+        <VideoPreview
           currentClip={currentClipForPreview}
           currentTime={videoCurrentTime}
           clipStartTime={currentClipStartTime}

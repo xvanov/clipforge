@@ -184,4 +184,3 @@ npm run tauri:dev  # Manual test now works
 **Command**: `npm run tauri:dev`  
 **Guide**: `tests/e2e/manual-timeline-test.md`  
 **Status**: All test infrastructure ready
-

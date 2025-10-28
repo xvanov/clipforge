@@ -104,11 +104,11 @@ pub async fn update_timeline_clip(
         .project
         .lock()
         .expect("Failed to acquire lock on project");
-    
+
     if let Some(ref mut project) = *project_lock {
         // Find the clip across all tracks
         let mut updated_clip: Option<TimelineClip> = None;
-        
+
         for track in &mut project.tracks {
             if let Some(clip) = track.clips.iter_mut().find(|c| c.id == clip_id) {
                 // Apply updates
@@ -125,7 +125,10 @@ pub async fn update_timeline_clip(
                         clip.in_point = in_point;
                         println!("✓ Updated clip in_point to {}", in_point);
                     } else {
-                        println!("✗ Rejected in_point update: {} (must be >= 0 and < out_point {})", in_point, clip.out_point);
+                        println!(
+                            "✗ Rejected in_point update: {} (must be >= 0 and < out_point {})",
+                            in_point, clip.out_point
+                        );
                     }
                 }
                 if let Some(out_point) = updates.out_point {
@@ -133,24 +136,27 @@ pub async fn update_timeline_clip(
                         clip.out_point = out_point;
                         println!("✓ Updated clip out_point to {}", out_point);
                     } else {
-                        println!("✗ Rejected out_point update: {} (must be > in_point {})", out_point, clip.in_point);
+                        println!(
+                            "✗ Rejected out_point update: {} (must be > in_point {})",
+                            out_point, clip.in_point
+                        );
                     }
                 }
                 if let Some(track_id) = updates.track_id {
                     clip.track_id = track_id;
                     println!("✓ Updated clip track_id");
                 }
-                
+
                 updated_clip = Some(clip.clone());
                 break;
             }
         }
-        
+
         if let Some(clip) = updated_clip {
             project.mark_modified();
             return Ok(clip);
         }
-        
+
         Err(format!("Clip not found: {}", clip_id))
     } else {
         Err("No project loaded".to_string())

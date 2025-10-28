@@ -79,7 +79,7 @@ const createTimelineStore = () => {
           out_point: updates.outPoint,
           track_id: updates.trackId,
         };
-        
+
         const updatedClip = await invoke<TimelineClip>('update_timeline_clip', {
           clipId,
           updates: rustUpdates,

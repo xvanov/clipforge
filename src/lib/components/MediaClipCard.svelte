@@ -42,13 +42,19 @@
       event.dataTransfer.setData('application/json', clipJson);
     }
   }
-  
-  function handleDragEnd(event: DragEvent) {
+
+  function handleDragEnd(_event: DragEvent) {
     // Drag operation complete
   }
 </script>
 
-<button class="clip-card" on:click draggable="true" on:dragstart={handleDragStart} on:dragend={handleDragEnd}>
+<button
+  class="clip-card"
+  on:click
+  draggable="true"
+  on:dragstart={handleDragStart}
+  on:dragend={handleDragEnd}
+>
   <div class="thumbnail">
     <img src={getThumbnailSrc(clip)} alt={clip.name} />
     <div class="duration">{formatDuration(clip.duration)}</div>
