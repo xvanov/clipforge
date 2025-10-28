@@ -4,7 +4,6 @@
 
   export let clip: TimelineClip;
   export let pixelsPerSecond: number = 50;
-  export let scrollLeft: number = 0;
   export let currentTime: number = 0;
   export let locked: boolean = false;
   // Optional: pass the source media duration to validate maxOutPoint
@@ -20,11 +19,23 @@
   let originalStartTime: number = 0;
   let originalInPoint: number = 0;
   let originalOutPoint: number = 0;
+  
+  // Local preview state during drag (updated immediately for visual feedback)
+  let previewStartTime: number | null = null;
+  let previewInPoint: number | null = null;
+  let previewOutPoint: number | null = null;
 
   $: duration = clip.out_point - clip.in_point;
   $: endTime = clip.start_time + duration;
-  $: leftPosition = clip.start_time * pixelsPerSecond - scrollLeft;
-  $: width = duration * pixelsPerSecond;
+  
+  // Use preview values during drag, otherwise use actual clip values
+  $: displayStartTime = previewStartTime !== null ? previewStartTime : clip.start_time;
+  $: displayInPoint = previewInPoint !== null ? previewInPoint : clip.in_point;
+  $: displayOutPoint = previewOutPoint !== null ? previewOutPoint : clip.out_point;
+  $: displayDuration = displayOutPoint - displayInPoint;
+  
+  $: leftPosition = displayStartTime * pixelsPerSecond;
+  $: width = displayDuration * pixelsPerSecond;
 
   function handleMouseDown(event: MouseEvent) {
     if (locked) return;
@@ -64,38 +75,44 @@
     const deltaTime = deltaX / pixelsPerSecond;
 
     if (isDragging) {
-      const newStartTime = Math.max(0, originalStartTime + deltaTime);
-      dispatch('drag', {
-        clipId: clip.id,
-        startTime: newStartTime,
-      });
+      // Update preview only (visual feedback), don't dispatch yet
+      previewStartTime = Math.max(0, originalStartTime + deltaTime);
     } else if (isTrimmingStart) {
-      const newInPoint = Math.max(0, Math.min(originalInPoint + deltaTime, clip.out_point - 0.1));
-      const newStartTime = originalStartTime + (newInPoint - originalInPoint);
-      dispatch('trimmed', {
-        clipId: clip.id,
-        inPoint: newInPoint,
-        startTime: newStartTime,
-      });
+      // Update preview only
+      previewInPoint = Math.max(0, Math.min(originalInPoint + deltaTime, clip.out_point - 0.1));
+      previewStartTime = originalStartTime + (previewInPoint - originalInPoint);
     } else if (isTrimmingEnd) {
-      // Constrain maxOutPoint by media duration if provided, otherwise use current out_point
+      // Update preview only
       const maxOutPoint = mediaDuration !== undefined ? mediaDuration : clip.out_point;
-      const newOutPoint = Math.max(
+      previewOutPoint = Math.max(
         clip.in_point + 0.1,
         Math.min(originalOutPoint + deltaTime, maxOutPoint)
       );
-      dispatch('trimmed', {
-        clipId: clip.id,
-        outPoint: newOutPoint,
-      });
     }
   }
 
   function handleMouseUp() {
-    if (isDragging || isTrimmingStart || isTrimmingEnd) {
-      dispatch('drag-end');
+    // Only dispatch once on mouseup with final values
+    if (isDragging && previewStartTime !== null) {
+      dispatch('moved', {
+        clipId: clip.id,
+        newStartTime: previewStartTime,
+      });
+    } else if ((isTrimmingStart || isTrimmingEnd) && 
+               (previewInPoint !== null || previewOutPoint !== null || previewStartTime !== null)) {
+      const updates: any = { clipId: clip.id };
+      if (previewInPoint !== null) updates.inPoint = previewInPoint;
+      if (previewOutPoint !== null) updates.outPoint = previewOutPoint;
+      if (previewStartTime !== null && isTrimmingStart) updates.startTime = previewStartTime;
+      
+      dispatch('trimmed', updates);
     }
 
+    // Clear preview state
+    previewStartTime = null;
+    previewInPoint = null;
+    previewOutPoint = null;
+    
     isDragging = false;
     isTrimmingStart = false;
     isTrimmingEnd = false;
@@ -185,11 +202,14 @@
 
   .timeline-clip.dragging {
     cursor: grabbing;
-    opacity: 0.8;
+    opacity: 0.7;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transform: scale(1.02);
   }
 
   .timeline-clip.trimming {
     cursor: ew-resize;
+    border-color: #8a8aff;
   }
 
   .timeline-clip.locked {

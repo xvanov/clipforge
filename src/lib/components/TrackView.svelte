@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import TimelineClipView from './TimelineClipView.svelte';
+  import { mediaLibrary } from '$lib/stores/media-library';
   import type { Track } from '../types/timeline';
 
   export let track: Track;
@@ -24,18 +25,18 @@
     draggedClipId = null;
   }
 
-  function handleClipDrag(event: CustomEvent) {
-    if (!isDraggingClip || !draggedClipId) return;
-
-    const newStartTime = event.detail.startTime;
+  function handleClipMoved(event: CustomEvent) {
+    const { clipId, newStartTime } = event.detail;
+    
     dispatch('clip-moved', {
-      clipId: draggedClipId,
+      clipId,
       newStartTime,
       trackId: track.id,
     });
   }
 
   function handleClipTrimmed(event: CustomEvent) {
+    const { clipId, inPoint, outPoint, startTime } = event.detail;
     dispatch('clip-trimmed', event.detail);
   }
 
@@ -46,9 +47,40 @@
   function handleClipDeleted(event: CustomEvent) {
     dispatch('clip-deleted', event.detail);
   }
+
+  // Handle drag and drop from media library
+  let isHoveringTrack = false;
+
+  function handleTrackDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    isHoveringTrack = true;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  function handleTrackDragLeave(event: DragEvent) {
+    isHoveringTrack = false;
+  }
+
+  function handleTrackDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    isHoveringTrack = false;
+    
+    // Bubble up to parent Timeline component by dispatching custom event
+    dispatch('track-drop', { event, track });
+  }
 </script>
 
-<div class="track-view" bind:this={trackElement}>
+<div class="track-view" 
+  bind:this={trackElement}
+  class:dropping={isHoveringTrack}
+  on:dragover={handleTrackDragOver}
+  on:dragleave={handleTrackDragLeave}
+  on:drop={handleTrackDrop}
+>
   <div class="track-header">
     <div class="track-name">{track.name}</div>
     <div class="track-controls">
@@ -74,16 +106,17 @@
   </div>
 
   <div class="track-content">
-    <div class="track-clips" style="position: relative; height: 100%;">
+    <div class="track-clips">
       {#each track.clips as timelineClip (timelineClip.id)}
+        {@const mediaClip = $mediaLibrary.find(mc => mc.id === timelineClip.media_clip_id)}
         <TimelineClipView
           clip={timelineClip}
           {pixelsPerSecond}
-          {scrollLeft}
           {currentTime}
           locked={track.locked}
+          mediaDuration={mediaClip?.duration}
           on:drag-start={handleClipDragStart}
-          on:drag={handleClipDrag}
+          on:moved={handleClipMoved}
           on:drag-end={handleClipDragEnd}
           on:trimmed={handleClipTrimmed}
           on:split={handleClipSplit}
@@ -100,6 +133,11 @@
     border-bottom: 1px solid #333;
     display: flex;
     background: #0a0a0a;
+  }
+
+  .track-view.dropping {
+    background: rgba(0, 200, 100, 0.1);
+    border: 2px solid #00c864;
   }
 
   .track-header {
@@ -151,11 +189,14 @@
   .track-content {
     flex: 1;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    min-height: 80px;
   }
 
   .track-clips {
+    position: relative;
     width: 100%;
     height: 100%;
+    min-height: 80px;
   }
 </style>

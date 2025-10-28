@@ -14,10 +14,25 @@
   let pixelsPerSecond: number = 50; // Zoom level
   let scrollLeft: number = 0;
   let isDraggingPlayhead: boolean = false;
+  let isDraggingOverTimeline: boolean = false;
 
   // Subscribe to timeline store - use derived store for better reactivity
   let tracks: Track[] = [];
   $: tracks = $tracksStore;
+
+  // Calculate total timeline duration from all clips
+  $: totalDuration = Math.max(
+    duration,
+    ...tracks.flatMap(track => 
+      track.clips.map(clip => clip.start_time + (clip.out_point - clip.in_point))
+    )
+  ) || 60; // Minimum 60 seconds
+
+  // Calculate minimum width needed to show all content
+  $: timelineContentWidth = Math.max(
+    totalDuration * pixelsPerSecond,
+    2000 // Minimum width of 2000px
+  );
 
   onMount(() => {
     if (canvas) {
@@ -170,62 +185,88 @@
   // Handle drag-and-drop from media library
   function handleDragOver(event: DragEvent) {
     event.preventDefault();
+    event.stopPropagation();
+    isDraggingOverTimeline = true;
     if (event.dataTransfer) {
       event.dataTransfer.dropEffect = 'copy';
     }
   }
 
-  async function handleDrop(event: DragEvent) {
-    event.preventDefault();
+  function handleDragLeave(event: DragEvent) {
+    // Only set isDraggingOverTimeline to false if we're leaving the timeline entirely
+    // Don't set it to false when moving between child elements
+    const target = event.currentTarget as HTMLElement;
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    
+    if (!target.contains(relatedTarget)) {
+      isDraggingOverTimeline = false;
+    }
+  }
 
-    if (!event.dataTransfer) return;
+  async function handleDrop(event: DragEvent | CustomEvent) {
+    // Handle both native DragEvent and CustomEvent from TrackView
+    let dragEvent: DragEvent;
+    let targetTrack: Track | undefined;
+    
+    if (event instanceof CustomEvent) {
+      dragEvent = event.detail.event;
+      targetTrack = event.detail.track;
+    } else {
+      dragEvent = event;
+    }
+    
+    dragEvent.preventDefault();
+    dragEvent.stopPropagation();
+    isDraggingOverTimeline = false;
 
-    const clipData = event.dataTransfer.getData('application/json');
-    if (!clipData) return;
+    if (!dragEvent.dataTransfer) {
+      console.error('No dataTransfer object');
+      return;
+    }
+
+    const clipData = dragEvent.dataTransfer.getData('application/json');
+    
+    if (!clipData) {
+      console.error('No clip data in dataTransfer');
+      return;
+    }
 
     try {
       const mediaClip: MediaClip = JSON.parse(clipData);
+      
       const rect = timelineContainer.getBoundingClientRect();
-      const x = event.clientX - rect.left + scrollLeft;
+      const x = dragEvent.clientX - rect.left + scrollLeft;
       let dropTime = x / pixelsPerSecond;
 
-      // If dropping near the left edge (within 2 seconds), auto-position after existing clips
-      if (dropTime < 2 && tracks.length > 0 && tracks[0].clips.length > 0) {
-        const existingClips = tracks[0].clips;
-        // Sort clips by start_time to find the actual last clip chronologically
-        const sortedClips = [...existingClips].sort((a, b) => a.start_time - b.start_time);
-        // Find the end time of the last clip
+      // Auto-position: place clips sequentially after existing clips
+      const targetTrackObj = targetTrack || tracks[0];
+      if (targetTrackObj && targetTrackObj.clips.length > 0) {
+        // Find the end time of the last clip on this track
+        const sortedClips = [...targetTrackObj.clips].sort((a, b) => a.start_time - b.start_time);
         const lastClip = sortedClips[sortedClips.length - 1];
         const lastClipEnd = lastClip.start_time + (lastClip.out_point - lastClip.in_point);
-        // Position new clip 0.5 seconds after the last clip
-        dropTime = lastClipEnd + 0.5;
-        console.log('Auto-positioning clip after existing clips at:', dropTime);
+        // Position new clip immediately after the last clip (no gap)
+        dropTime = lastClipEnd;
+      } else {
+        // If track is empty, start at beginning
+        dropTime = 0;
       }
 
-      console.log(
-        'Dropping clip:',
-        mediaClip.name,
-        'at time:',
-        dropTime,
-        'duration:',
-        mediaClip.duration
-      );
-
-      // Add clip to first track
-      if (tracks.length > 0) {
-        console.log('Adding to track:', tracks[0].id, 'existing clips:', tracks[0].clips.length);
+      // Add clip to first track (or specified track)
+      const trackToUse = targetTrack || tracks[0];
+      if (trackToUse) {
         // in_point starts at 0, out_point is the media duration (full clip)
         const result = await timelineStore.addClipToTimeline(
           mediaClip.id,
-          tracks[0].id,
+          trackToUse.id,
           dropTime,
           0, // in_point: start of media
           mediaClip.duration // out_point: end of media (use full clip duration)
         );
-        console.log('Clip added successfully:', result);
-        console.log('Current tracks state:', tracks);
+        
+        console.log(`Added "${mediaClip.name}" to timeline at ${dropTime.toFixed(2)}s`);
       } else {
-        console.error('No tracks available!');
+        console.error('No tracks available');
       }
     } catch (error) {
       console.error('Failed to drop clip:', error);
@@ -236,6 +277,35 @@
   $: if (ctx && (currentTime || pixelsPerSecond || scrollLeft !== undefined || tracks)) {
     drawTimeline();
   }
+
+  // Handle clip movement (drag to reorder)
+  async function handleClipMoved(event: CustomEvent) {
+    const { clipId, newStartTime } = event.detail;
+    
+    try {
+      await timelineStore.updateClip(clipId, {
+        startTime: newStartTime
+      });
+    } catch (error) {
+      console.error('Failed to move clip:', error);
+    }
+  }
+
+  // Handle clip trimming
+  async function handleClipTrimmed(event: CustomEvent) {
+    const { clipId, inPoint, outPoint, startTime } = event.detail;
+    
+    try {
+      const updates: any = {};
+      if (inPoint !== undefined) updates.inPoint = inPoint;
+      if (outPoint !== undefined) updates.outPoint = outPoint;
+      if (startTime !== undefined) updates.startTime = startTime;
+      
+      await timelineStore.updateClip(clipId, updates);
+    } catch (error) {
+      console.error('Failed to trim clip:', error);
+    }
+  }
 </script>
 
 <div
@@ -243,8 +313,6 @@
   role="region"
   aria-label="Timeline editor"
   bind:this={timelineContainer}
-  on:dragover={handleDragOver}
-  on:drop={handleDrop}
 >
   <!-- Debug panel -->
   <div
@@ -252,6 +320,7 @@
   >
     <strong>DEBUG</strong><br />
     Tracks: {tracks.length}<br />
+    Dragging Over: {isDraggingOverTimeline ? 'YES' : 'NO'}<br />
     {#each tracks as trackItem, i}
       Track {i} "{trackItem.name}": {trackItem.clips.length} clips<br />
       {#each trackItem.clips as clipItem, j}
@@ -276,6 +345,7 @@
     <div class="timeline-ruler">
       <canvas
         bind:this={canvas}
+        style="width: {timelineContentWidth}px;"
         on:click={handleCanvasClick}
         on:mousedown={handleCanvasMouseDown}
         on:mousemove={handleCanvasMouseMove}
@@ -284,10 +354,28 @@
       />
     </div>
 
-    <div class="timeline-tracks">
+    <div
+      class="timeline-tracks"
+      class:dragging-over={isDraggingOverTimeline}
+      role="region"
+      aria-label="Timeline tracks drop zone"
+      on:dragover={handleDragOver}
+      on:dragleave={handleDragLeave}
+      on:drop={handleDrop}
+    >
+      <div class="timeline-tracks-inner" style="width: {timelineContentWidth}px; min-height: 100px;">
       {#each tracks as trackItem (trackItem.id)}
-        <TrackView track={trackItem} {pixelsPerSecond} {scrollLeft} bind:currentTime />
+        <TrackView 
+          track={trackItem} 
+          {pixelsPerSecond} 
+          {scrollLeft} 
+          bind:currentTime
+          on:track-drop={handleDrop}
+          on:clip-moved={handleClipMoved}
+          on:clip-trimmed={handleClipTrimmed}
+        />
       {/each}
+      </div>
     </div>
   </div>
 </div>
@@ -345,7 +433,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: auto;
   }
 
   .timeline-ruler {
@@ -353,16 +442,29 @@
     background: #1a1a1a;
     border-bottom: 1px solid #333;
     position: relative;
+    overflow: visible;
   }
 
   .timeline-ruler canvas {
-    width: 100%;
     height: 100%;
     cursor: pointer;
+    display: block;
   }
 
   .timeline-tracks {
     flex: 1;
+    overflow-x: auto;
     overflow-y: auto;
+    min-height: 100px;
+    position: relative;
+  }
+
+  .timeline-tracks-inner {
+    position: relative;
+  }
+
+  .timeline-tracks.dragging-over {
+    background: rgba(0, 120, 212, 0.2);
+    border: 2px dashed #0078d4;
   }
 </style>

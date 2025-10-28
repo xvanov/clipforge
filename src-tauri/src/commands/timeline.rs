@@ -95,12 +95,66 @@ pub async fn add_clip_to_timeline(
 #[tauri::command]
 pub async fn update_timeline_clip(
     clip_id: String,
-    _updates: TimelineClipUpdates,
-    _state: State<'_, AppState>,
+    updates: TimelineClipUpdates,
+    state: State<'_, AppState>,
 ) -> Result<TimelineClip, String> {
-    // TODO: Implement update logic with project state
-    // For now, return error
-    Err(format!("Not fully implemented yet: {}", clip_id))
+    println!("update_timeline_clip called: clip={}", clip_id);
+
+    let mut project_lock = state
+        .project
+        .lock()
+        .expect("Failed to acquire lock on project");
+    
+    if let Some(ref mut project) = *project_lock {
+        // Find the clip across all tracks
+        let mut updated_clip: Option<TimelineClip> = None;
+        
+        for track in &mut project.tracks {
+            if let Some(clip) = track.clips.iter_mut().find(|c| c.id == clip_id) {
+                // Apply updates
+                if let Some(start_time) = updates.start_time {
+                    if start_time >= 0.0 {
+                        clip.start_time = start_time;
+                        println!("✓ Updated clip start_time to {}", start_time);
+                    } else {
+                        println!("✗ Rejected start_time update: {} (negative)", start_time);
+                    }
+                }
+                if let Some(in_point) = updates.in_point {
+                    if in_point >= 0.0 && in_point < clip.out_point {
+                        clip.in_point = in_point;
+                        println!("✓ Updated clip in_point to {}", in_point);
+                    } else {
+                        println!("✗ Rejected in_point update: {} (must be >= 0 and < out_point {})", in_point, clip.out_point);
+                    }
+                }
+                if let Some(out_point) = updates.out_point {
+                    if out_point > clip.in_point {
+                        clip.out_point = out_point;
+                        println!("✓ Updated clip out_point to {}", out_point);
+                    } else {
+                        println!("✗ Rejected out_point update: {} (must be > in_point {})", out_point, clip.in_point);
+                    }
+                }
+                if let Some(track_id) = updates.track_id {
+                    clip.track_id = track_id;
+                    println!("✓ Updated clip track_id");
+                }
+                
+                updated_clip = Some(clip.clone());
+                break;
+            }
+        }
+        
+        if let Some(clip) = updated_clip {
+            project.mark_modified();
+            return Ok(clip);
+        }
+        
+        Err(format!("Clip not found: {}", clip_id))
+    } else {
+        Err("No project loaded".to_string())
+    }
 }
 
 /// T050: Split timeline clip at specified time

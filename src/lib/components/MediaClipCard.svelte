@@ -38,12 +38,17 @@
   function handleDragStart(event: DragEvent) {
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'copy';
-      event.dataTransfer.setData('application/json', JSON.stringify(clip));
+      const clipJson = JSON.stringify(clip);
+      event.dataTransfer.setData('application/json', clipJson);
     }
+  }
+  
+  function handleDragEnd(event: DragEvent) {
+    // Drag operation complete
   }
 </script>
 
-<button class="clip-card" on:click draggable="true" on:dragstart={handleDragStart}>
+<button class="clip-card" on:click draggable="true" on:dragstart={handleDragStart} on:dragend={handleDragEnd}>
   <div class="thumbnail">
     <img src={getThumbnailSrc(clip)} alt={clip.name} />
     <div class="duration">{formatDuration(clip.duration)}</div>

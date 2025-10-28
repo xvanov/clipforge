@@ -1,10 +1,16 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import { invoke } from '@tauri-apps/api';
   import { convertFileSrc } from '@tauri-apps/api/tauri';
   import type { MediaClip } from '$lib/types/clip';
 
+  const dispatch = createEventDispatcher();
+
   export let currentClip: MediaClip | null = null;
   export let currentTime: number = 0;
+  export let clipStartTime: number = 0;
+  export let clipInPoint: number = 0;
+  export let clipOutPoint: number = 0;
 
   let videoElement: HTMLVideoElement;
   let isPlaying = false;
@@ -13,14 +19,26 @@
   let volume = 1.0;
   let playbackError = '';
   let isLoadingProxy = false;
+  let previousClipId: string | null = null;
 
-  // Sync external currentTime prop with video element
-  // Update video when timeline scrubs, but avoid interference during playback
-  $: if (videoElement && !isPlaying) {
-    const timeDiff = Math.abs(currentTime - localTime);
+  // When clip changes or playback starts, seek to the correct in-point
+  $: if (currentClip && currentClip.id !== previousClipId && videoElement) {
+    previousClipId = currentClip.id;
+    const videoTime = clipInPoint + (currentTime - clipStartTime);
+    if (videoElement.currentTime !== videoTime) {
+      videoElement.currentTime = Math.max(0, Math.min(videoTime, clipOutPoint));
+    }
+  }
+
+  // Sync external currentTime prop with video element during scrubbing
+  $: if (videoElement && !isPlaying && currentClip) {
+    const relativeTime = currentTime - clipStartTime;
+    const videoTime = clipInPoint + relativeTime;
+    const timeDiff = Math.abs(videoTime - localTime);
+    
     // Only update if there's a significant difference (>0.1s) to avoid jitter
     if (timeDiff > 0.1) {
-      videoElement.currentTime = currentTime;
+      videoElement.currentTime = Math.max(clipInPoint, Math.min(videoTime, clipOutPoint));
     }
   }
 
@@ -29,6 +47,9 @@
     try {
       playbackError = '';
       isLoadingProxy = false;
+      
+      // Remember if we were playing
+      const wasPlaying = isPlaying;
 
       // Get playback path from backend (returns proxy if available, or source path)
       const playbackPath = await invoke<string>('load_clip_for_playback', {
@@ -50,6 +71,25 @@
         const assetUrl = convertFileSrc(playbackPath);
         console.log('Loading video from asset URL:', assetUrl);
         videoElement.src = assetUrl;
+        
+        // Set up one-time loadeddata listener to resume playback and seek
+        const handleLoaded = () => {
+          if (videoElement) {
+            // Seek to correct position
+            const videoTime = clipInPoint + (currentTime - clipStartTime);
+            videoElement.currentTime = Math.max(clipInPoint, Math.min(videoTime, clipOutPoint));
+            
+            // Resume playback if we were playing
+            if (wasPlaying) {
+              videoElement.play().catch(err => {
+                console.error('Failed to resume playback:', err);
+              });
+            }
+          }
+          videoElement?.removeEventListener('loadeddata', handleLoaded);
+        };
+        
+        videoElement.addEventListener('loadeddata', handleLoaded);
         videoElement.load();
       }
     } catch (err) {
@@ -132,16 +172,29 @@
     if (videoElement) {
       localTime = videoElement.currentTime;
       duration = videoElement.duration || 0;
-      // Don't dispatch to avoid feedback loop - just update local state
+      
+      // Check if we've reached the out_point of the current clip
+      if (clipOutPoint > 0 && localTime >= clipOutPoint) {
+        // Pause at the out_point
+        videoElement.pause();
+        // Keep the video at the out_point (don't let it drift past)
+        videoElement.currentTime = clipOutPoint;
+        return;
+      }
+      
+      // Dispatch time updates to parent
+      dispatch('timeupdate', { time: localTime });
     }
   }
 
   function handlePlay() {
     isPlaying = true;
+    dispatch('playpause', { playing: true });
   }
 
   function handlePause() {
     isPlaying = false;
+    dispatch('playpause', { playing: false });
   }
 
   function formatTime(seconds: number): string {

@@ -72,9 +72,17 @@ const createTimelineStore = () => {
       }
     ) => {
       try {
+        // Convert camelCase to snake_case for Rust
+        const rustUpdates = {
+          start_time: updates.startTime,
+          in_point: updates.inPoint,
+          out_point: updates.outPoint,
+          track_id: updates.trackId,
+        };
+        
         const updatedClip = await invoke<TimelineClip>('update_timeline_clip', {
           clipId,
-          updates,
+          updates: rustUpdates,
         });
 
         update((state) => {
