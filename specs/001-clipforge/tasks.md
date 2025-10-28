@@ -5,6 +5,19 @@
 
 **Tests**: Tests follow TDD for critical paths (media import, FFmpeg operations, timeline state, export pipeline). Trivial operations may skip tests per constitution guidance. Focus on meaningful test coverage that catches production issues.
 
+**Branching Strategy**: Create a new branch for each phase to isolate work and enable clean PRs.
+
+```bash
+# Example: Starting Phase 4 (User Story 2)
+git checkout main
+git pull origin main
+git checkout -b 004-timeline-editing
+
+# After completing phase, push and create PR
+git push origin 004-timeline-editing
+# Create PR: 004-timeline-editing → main
+```
+
 **CI/CD Validation**: After completing each phase, run all CI/CD checks locally to ensure everything passes before moving to the next phase. See README.md for complete instructions.
 
 ```bash

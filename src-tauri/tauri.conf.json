@@ -47,7 +47,7 @@
     },
     "bundle": {
       "active": true,
-      "category": "VideoEditor",
+      "category": "Video",
       "copyright": "Copyright © 2025 ClipForge",
       "identifier": "com.clipforge.app",
       "icon": [
