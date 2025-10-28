@@ -8,7 +8,7 @@ A powerful desktop video editor built with Tauri, Svelte, and FFmpeg. Import vid
 
 ### MVP (Currently Implementing)
 - ✅ **Phase 1 & 2 Complete**: Project structure and foundation
-- 🚧 **User Story 1**: Import and Basic Video Playback
+- ✅ **User Story 1**: Import and Basic Video Playback (with MOV/ProRes support)
 - 🚧 **User Story 2**: Timeline Editing and Trimming
 - 🚧 **User Story 3**: Video Export
 
@@ -146,9 +146,9 @@ npm run tauri:build
 ### Phase 2: Foundational ✅ COMPLETE  
 - [x] T011-T026: Data models, stores, infrastructure
 
-### Phase 3: User Story 1 (Import & Playback) 🚧 IN PROGRESS
-- [ ] T027-T040: Media import, thumbnails, video preview
-- **Next**: Implement FFmpeg metadata extraction
+### Phase 3: User Story 1 (Import & Playback) ✅ COMPLETE
+- [x] T027-T040b: Media import, thumbnails, video preview, proxy generation
+- **Achievement**: Full video import and playback with MOV/ProRes support
 
 ### Phase 4: User Story 2 (Timeline Editing) 📋 TODO
 - [ ] T041-T061: Canvas timeline, drag-drop, trim/split
@@ -177,7 +177,7 @@ Rust Backend (FFmpeg, Storage, Platform APIs)
 **Rust Backend** (`src-tauri/src/`):
 - **Commands**: Tauri IPC handlers (media, project, timeline, export, recording)
 - **Models**: Data structures (Project, MediaClip, TimelineClip, Track)
-- **FFmpeg**: Media processing (import, thumbnail, export, transcode)
+- **FFmpeg**: Media processing (import, thumbnail, proxy generation, export, transcode)
 - **Storage**: Persistence (JSON projects, SQLite cache)
 
 **Svelte Frontend** (`src/`):

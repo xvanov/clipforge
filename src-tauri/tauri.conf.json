@@ -13,6 +13,16 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "protocol": {
+        "asset": true,
+        "assetScope": [
+          "$APPDATA/**",
+          "$DOCUMENT/**", 
+          "$DESKTOP/**",
+          "$VIDEO/**",
+          "$HOME/.clipforge/**"
+        ]
+      },
       "dialog": {
         "all": true,
         "open": true,
@@ -29,7 +39,7 @@
         "removeFile": true,
         "renameFile": true,
         "exists": true,
-        "scope": ["$APPDATA/*", "$DOCUMENT/*", "$DESKTOP/*", "$VIDEO/*"]
+        "scope": ["$APPDATA/*", "$DOCUMENT/*", "$DESKTOP/*", "$VIDEO/*", "$HOME/.clipforge/**"]
       },
       "shell": {
         "open": true

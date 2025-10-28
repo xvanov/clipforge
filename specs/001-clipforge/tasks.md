@@ -72,20 +72,21 @@
 
 ### Implementation for User Story 1
 
-- [ ] T027 [P] [US1] Implement import_media_files Tauri command in src-tauri/src/commands/media.rs
-- [ ] T028 [P] [US1] Implement get_media_metadata Tauri command in src-tauri/src/commands/media.rs using FFmpeg
-- [ ] T029 [P] [US1] Create FFmpeg metadata extraction function in src-tauri/src/ffmpeg/transcoder.rs
-- [ ] T030 [P] [US1] Create FFmpeg thumbnail generation function in src-tauri/src/ffmpeg/thumbnails.rs
-- [ ] T031 [US1] Implement thumbnail generation task queue in src-tauri/src/ffmpeg/thumbnails.rs (async with tokio)
-- [ ] T032 [P] [US1] Create MediaLibrary Svelte component in src/lib/components/MediaLibrary.svelte
-- [ ] T033 [P] [US1] Create MediaClipCard Svelte component in src/lib/components/MediaClipCard.svelte (thumbnail + metadata)
-- [ ] T034 [P] [US1] Create VideoPreview Svelte component in src/lib/components/VideoPreview.svelte with HTML5 video element
-- [ ] T035 [US1] Implement drag-and-drop file import in MediaLibrary component using Tauri file drop API
-- [ ] T036 [US1] Implement file picker dialog integration in src/lib/services/tauri-api.ts
-- [ ] T037 [US1] Implement load_clip_for_playback Tauri command in src-tauri/src/commands/playback.rs
-- [ ] T038 [US1] Wire up VideoPreview playback controls (play, pause, seek) in src/lib/components/VideoPreview.svelte
-- [ ] T039 [US1] Create main app layout in src/App.svelte with MediaLibrary and VideoPreview sections
-- [ ] T040 [US1] Implement media library state synchronization between Rust and Svelte stores
+- [x] T027 [P] [US1] Implement import_media_files Tauri command in src-tauri/src/commands/media.rs
+- [x] T028 [P] [US1] Implement get_media_metadata Tauri command in src-tauri/src/commands/media.rs using FFmpeg
+- [x] T029 [P] [US1] Create FFmpeg metadata extraction function in src-tauri/src/ffmpeg/metadata.rs
+- [x] T030 [P] [US1] Create FFmpeg thumbnail generation function in src-tauri/src/ffmpeg/thumbnails.rs
+- [x] T031 [US1] Implement thumbnail generation task queue in src-tauri/src/ffmpeg/thumbnails.rs (async with tokio)
+- [x] T032 [P] [US1] Create MediaLibrary Svelte component in src/lib/components/MediaLibrary.svelte
+- [x] T033 [P] [US1] Create MediaClipCard Svelte component in src/lib/components/MediaClipCard.svelte (thumbnail + metadata)
+- [x] T034 [P] [US1] Create VideoPreview Svelte component in src/lib/components/VideoPreview.svelte with HTML5 video element
+- [x] T035 [US1] Implement drag-and-drop file import in MediaLibrary component using Tauri file drop API
+- [x] T036 [US1] Implement file picker dialog integration in MediaLibrary component
+- [x] T037 [US1] Implement load_clip_for_playback Tauri command in src-tauri/src/commands/playback.rs
+- [x] T038 [US1] Wire up VideoPreview playback controls (play, pause, seek) in src/lib/components/VideoPreview.svelte
+- [x] T039 [US1] Create main app layout in src/App.svelte with MediaLibrary and VideoPreview sections
+- [x] T040 [US1] Implement media library state synchronization between Rust and Svelte stores
+- [x] T040b [US1] Implement proxy video generation for MOV and non-web-compatible formats in src-tauri/src/ffmpeg/proxy.rs (background async)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can import and play videos
 

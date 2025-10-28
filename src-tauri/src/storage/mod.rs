@@ -1,4 +1,6 @@
-// Storage and persistence module
-// Will contain: project save/load, metadata cache, thumbnails cache
+// Storage layer for ClipForge
+// Handles persistence: SQLite cache, project files, and media storage
 
 pub mod cache;
+
+pub use cache::{CacheDb, initialize_cache};

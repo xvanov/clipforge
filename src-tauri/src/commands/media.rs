@@ -1,6 +1,6 @@
 // Media command implementation for import, metadata extraction, and thumbnail generation
 
-use crate::ffmpeg::{extract_metadata, generate_thumbnail};
+use crate::ffmpeg::{extract_metadata, generate_proxy, generate_thumbnail, needs_proxy};
 use crate::models::clip::MediaClip;
 use crate::storage::cache::CacheDb;
 use serde::{Deserialize, Serialize};
@@ -88,6 +88,59 @@ async fn import_single_file(path: &str, state: &State<'_, AppState>) -> Result<M
         }
     }
 
+    // Check if we need to generate a proxy for web playback
+    let proxy_path = if needs_proxy(&metadata.codec) {
+        let proxy_dir = cache_dir.join("proxies");
+        std::fs::create_dir_all(&proxy_dir)
+            .map_err(|e| format!("Failed to create proxy directory: {}", e))?;
+        let proxy_file = proxy_dir.join(format!("{}.mp4", clip_id));
+        let proxy_path_str = proxy_file
+            .to_str()
+            .ok_or("Invalid proxy path")?
+            .to_string();
+
+        // Generate proxy in background (don't block import)
+        let path_clone = path.to_string();
+        let proxy_clone = proxy_path_str.clone();
+        let clip_id_clone = clip_id.clone();
+        let state_clone = state.inner().clone();
+        
+        tokio::spawn(async move {
+            match generate_proxy(&path_clone, &proxy_clone).await {
+                Ok(_) => {
+                    println!("✓ Proxy generated for clip {}", clip_id_clone);
+                    println!("  Proxy path: {}", proxy_clone);
+                    
+                    // Update the clip in the library with the proxy path
+                    let mut library = state_clone.media_library.lock().unwrap();
+                    if let Some(clip) = library.iter_mut().find(|c| c.id == clip_id_clone) {
+                        clip.proxy_path = Some(proxy_clone.clone());
+                        println!("  Updated clip in library with proxy path");
+                        
+                        // Update cache database
+                        let cache_db = state_clone.cache_db.lock().unwrap();
+                        if let Err(e) = cache_db.insert_media_clip(clip) {
+                            eprintln!("Failed to update clip with proxy path: {}", e);
+                        } else {
+                            println!("  Updated cache database with proxy path");
+                        }
+                    } else {
+                        eprintln!("  ERROR: Could not find clip {} in library to update proxy path", clip_id_clone);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Warning: Failed to generate proxy for {}: {}", clip_id_clone, e);
+                }
+            }
+        });
+
+        // Return None for now - will be updated when proxy generation completes
+        None
+    } else {
+        // No proxy needed for web-compatible formats
+        None
+    };
+
     // Get file size
     let file_size = std::fs::metadata(&file_path)
         .map(|m| m.len())
@@ -105,7 +158,7 @@ async fn import_single_file(path: &str, state: &State<'_, AppState>) -> Result<M
         id: clip_id,
         name,
         source_path: path.to_string(),
-        proxy_path: None,
+        proxy_path,
         thumbnail_path: if thumbnail_path.exists() {
             Some(thumbnail_path_str)
         } else {
@@ -153,11 +206,15 @@ pub async fn generate_thumbnail_for_clip(
     timestamp: f64,
     state: State<'_, AppState>,
 ) -> Result<String, String> {
-    let library = state.media_library.lock().unwrap();
-    let clip = library
-        .iter()
-        .find(|c| c.id == clip_id)
-        .ok_or_else(|| format!("Media clip not found: {}", clip_id))?;
+    // Get the source path from the library, then drop the lock before async operation
+    let source_path = {
+        let library = state.media_library.lock().unwrap();
+        let clip = library
+            .iter()
+            .find(|c| c.id == clip_id)
+            .ok_or_else(|| format!("Media clip not found: {}", clip_id))?;
+        clip.source_path.clone()
+    }; // MutexGuard is dropped here
 
     let cache_dir = get_cache_dir()?;
     let thumbnail_dir = cache_dir.join("thumbnails");
@@ -167,7 +224,7 @@ pub async fn generate_thumbnail_for_clip(
         .ok_or("Invalid thumbnail path")?
         .to_string();
 
-    generate_thumbnail(&clip.source_path, &thumbnail_path_str, timestamp).await?;
+    generate_thumbnail(&source_path, &thumbnail_path_str, timestamp).await?;
 
     Ok(thumbnail_path_str)
 }

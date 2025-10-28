@@ -17,5 +17,6 @@ export interface MediaClip {
   bitrate: number | null;
   has_audio: boolean;
   imported_at: string; // ISO 8601 datetime
+  captions: string[]; // Caption IDs
 }
 

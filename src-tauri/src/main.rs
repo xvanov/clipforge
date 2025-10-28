@@ -14,15 +14,41 @@ mod storage;
 #[cfg(target_os = "macos")]
 mod platform;
 
-use commands::{media, project, timeline};
+use commands::{media, playback, project, timeline};
+use commands::media::AppState;
+use storage::CacheDb;
+use std::sync::{Arc, Mutex};
 
 fn main() {
+    // Initialize cache database
+    let cache_path = dirs::home_dir()
+        .expect("Failed to get home directory")
+        .join(".clipforge")
+        .join("cache")
+        .join("clipforge.db");
+
+    std::fs::create_dir_all(cache_path.parent().unwrap())
+        .expect("Failed to create cache directory");
+
+    let cache_db = CacheDb::new(&cache_path)
+        .expect("Failed to initialize cache database");
+
+    // Initialize app state
+    let app_state = AppState {
+        cache_db: Arc::new(Mutex::new(cache_db)),
+        media_library: Arc::new(Mutex::new(Vec::new())),
+    };
+
     tauri::Builder::default()
+        .manage(app_state)
         .invoke_handler(tauri::generate_handler![
             // Media commands
             media::import_media_files,
             media::get_media_metadata,
-            media::generate_thumbnail,
+            media::generate_thumbnail_for_clip,
+            
+            // Playback commands
+            playback::load_clip_for_playback,
             
             // Project commands
             project::create_new_project,
@@ -39,4 +65,3 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

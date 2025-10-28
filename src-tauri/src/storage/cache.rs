@@ -1,8 +1,56 @@
 // SQLite cache database for media metadata and auto-saves
 // Provides fast lookups and persistence for app state
 
+use crate::models::clip::MediaClip;
 use rusqlite::{Connection, Result as SqliteResult};
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
+
+/// Thread-safe wrapper for cache database
+#[derive(Debug, Clone)]
+pub struct CacheDb {
+    conn: Arc<Mutex<Connection>>,
+}
+
+impl CacheDb {
+    pub fn new(cache_path: &PathBuf) -> SqliteResult<Self> {
+        let conn = initialize_cache(cache_path)?;
+        Ok(Self {
+            conn: Arc::new(Mutex::new(conn)),
+        })
+    }
+
+    pub fn insert_media_clip(&self, clip: &MediaClip) -> Result<(), String> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "INSERT OR REPLACE INTO media_clips 
+             (id, name, source_path, proxy_path, thumbnail_path, duration, resolution, 
+              width, height, fps, codec, audio_codec, file_size, bitrate, has_audio, imported_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+            rusqlite::params![
+                clip.id,
+                clip.name,
+                clip.source_path,
+                clip.proxy_path,
+                clip.thumbnail_path,
+                clip.duration,
+                clip.resolution,
+                clip.width,
+                clip.height,
+                clip.fps,
+                clip.codec,
+                clip.audio_codec,
+                clip.file_size,
+                clip.bitrate,
+                clip.has_audio,
+                clip.imported_at.to_rfc3339(),
+            ],
+        )
+        .map_err(|e| format!("Failed to insert media clip: {}", e))?;
+        
+        Ok(())
+    }
+}
 
 /// Initialize the SQLite cache database
 /// Creates the database file and sets up schema if it doesn't exist
