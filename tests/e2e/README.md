@@ -151,3 +151,4 @@ npx playwright test
 
 **Status**: Manual testing available, automated E2E planned for later phase
 **Last Updated**: October 28, 2025
+
