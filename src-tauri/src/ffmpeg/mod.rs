@@ -1,6 +1,7 @@
 // FFmpeg integration module
 // Provides video processing capabilities: metadata extraction, thumbnails, proxy generation, export
 
+pub mod export;
 pub mod metadata;
 pub mod proxy;
 pub mod thumbnails;

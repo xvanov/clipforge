@@ -7,6 +7,7 @@
 
   export let currentTime: number = 0;
   export let duration: number = 0;
+  export let showDebug: boolean = false; // Controlled from parent
 
   let timelineContainer: HTMLDivElement;
   let canvas: HTMLCanvasElement;
@@ -315,30 +316,31 @@
   aria-label="Timeline editor"
   bind:this={timelineContainer}
 >
-  <!-- Debug panel -->
-  <div
-    style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.9); color: #0f0; padding: 8px; font-family: monospace; font-size: 11px; z-index: 1000; border: 1px solid #0f0; max-width: 300px;"
-  >
-    <strong>DEBUG</strong><br />
-    Tracks: {tracks.length}<br />
-    Dragging Over: {isDraggingOverTimeline ? 'YES' : 'NO'}<br />
-    {#each tracks as trackItem, i}
-      Track {i} "{trackItem.name}": {trackItem.clips.length} clips<br />
-      {#each trackItem.clips as clipItem, j}
-        &nbsp;&nbsp;Clip {j}: {clipItem.id.substring(0, 6)}... at {clipItem.start_time.toFixed(1)}s
-        (dur: {(clipItem.out_point - clipItem.in_point).toFixed(1)}s)<br />
+  <!-- Debug panel - Toggle with Cmd/Ctrl+Shift+D -->
+  {#if showDebug}
+    <div
+      style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.9); color: #0f0; padding: 8px; font-family: monospace; font-size: 11px; z-index: 1000; border: 1px solid #0f0; max-width: 300px;"
+    >
+      <strong>DEBUG</strong> (Cmd/Ctrl+Shift+D to toggle)<br />
+      <strong>CLIPS: {tracks.length > 0 ? tracks[0].clips.length : 0}</strong><br />
+      Tracks: {tracks.length}<br />
+      Dragging Over: {isDraggingOverTimeline ? 'YES' : 'NO'}<br />
+      {#each tracks as trackItem, i}
+        Track {i} "{trackItem.name}": {trackItem.clips.length} clips<br />
+        {#each trackItem.clips as clipItem, j}
+          &nbsp;&nbsp;Clip {j}: {clipItem.id.substring(0, 6)}... at {clipItem.start_time.toFixed(
+            1
+          )}s (dur: {(clipItem.out_point - clipItem.in_point).toFixed(1)}s)<br />
+        {/each}
       {/each}
-    {/each}
-  </div>
+    </div>
+  {/if}
 
   <div class="timeline-header">
     <div class="timeline-controls">
       <button on:click={handleZoomIn} title="Zoom In">+</button>
       <button on:click={handleZoomOut} title="Zoom Out">-</button>
       <span class="zoom-level">{Math.round(pixelsPerSecond)}px/s</span>
-      <span style="margin-left: 20px; color: #0f0; font-weight: bold;">
-        CLIPS: {tracks.length > 0 ? tracks[0].clips.length : 0}
-      </span>
     </div>
   </div>
 

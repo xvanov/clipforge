@@ -157,20 +157,20 @@ cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check
 
 ### Implementation for User Story 3
 
-- [ ] T062 [P] [US3] Create ExportDialog Svelte component in src/lib/components/ExportDialog.svelte
-- [ ] T063 [P] [US3] Create ExportSettings struct in src-tauri/src/models/export.rs
-- [ ] T064 [P] [US3] Create FFmpeg export pipeline in src-tauri/src/ffmpeg/export.rs
-- [ ] T065 [US3] Implement FFmpeg concat file generation from timeline in src-tauri/src/ffmpeg/export.rs
-- [ ] T066 [US3] Implement export_timeline Tauri command in src-tauri/src/commands/export.rs
-- [ ] T067 [US3] Implement cancel_export Tauri command in src-tauri/src/commands/export.rs
-- [ ] T068 [US3] Implement FFmpeg progress parsing (stderr) in src-tauri/src/ffmpeg/export.rs
-- [ ] T069 [US3] Implement Tauri event emission for export progress in src-tauri/src/commands/export.rs
-- [ ] T070 [US3] Wire up export dialog UI with resolution options in ExportDialog.svelte
-- [ ] T071 [US3] Implement progress bar in ExportDialog.svelte listening to export_progress events
-- [ ] T072 [US3] Implement export cancellation UI in ExportDialog.svelte
-- [ ] T073 [US3] Implement export completion notification in ExportDialog.svelte
-- [ ] T074 [US3] Add Export button to main app toolbar in src/App.svelte
-- [ ] T075 [US3] Implement partial file cleanup on cancel/error in src-tauri/src/commands/export.rs
+- [x] T062 [P] [US3] Create ExportDialog Svelte component in src/lib/components/ExportDialog.svelte
+- [x] T063 [P] [US3] Create ExportSettings struct in src-tauri/src/models/export.rs
+- [x] T064 [P] [US3] Create FFmpeg export pipeline in src-tauri/src/ffmpeg/export.rs
+- [x] T065 [US3] Implement FFmpeg concat file generation from timeline in src-tauri/src/ffmpeg/export.rs
+- [x] T066 [US3] Implement export_timeline Tauri command in src-tauri/src/commands/export.rs
+- [x] T067 [US3] Implement cancel_export Tauri command in src-tauri/src/commands/export.rs
+- [x] T068 [US3] Implement FFmpeg progress parsing (stderr) in src-tauri/src/ffmpeg/export.rs
+- [x] T069 [US3] Implement Tauri event emission for export progress in src-tauri/src/commands/export.rs
+- [x] T070 [US3] Wire up export dialog UI with resolution options in ExportDialog.svelte
+- [x] T071 [US3] Implement progress bar in ExportDialog.svelte listening to export_progress events
+- [x] T072 [US3] Implement export cancellation UI in ExportDialog.svelte
+- [x] T073 [US3] Implement export completion notification in ExportDialog.svelte
+- [x] T074 [US3] Add Export button to main app toolbar in src/App.svelte
+- [x] T075 [US3] Implement partial file cleanup on cancel/error in src-tauri/src/commands/export.rs
 
 **Checkpoint**: 🎉 **MVP COMPLETE!** Users can import, edit, and export videos (full workflow). **Run full CI/CD validation to confirm MVP stability.**
 

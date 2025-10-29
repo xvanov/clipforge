@@ -15,7 +15,7 @@ mod storage;
 mod platform;
 
 use commands::media::AppState;
-use commands::{media, playback, project, timeline};
+use commands::{export, media, playback, project, timeline};
 use std::sync::{Arc, Mutex};
 use storage::CacheDb;
 
@@ -39,8 +39,12 @@ fn main() {
         project: Arc::new(Mutex::new(None)),
     };
 
+    // Initialize export state
+    let export_state = export::ExportState::new();
+
     tauri::Builder::default()
         .manage(app_state)
+        .manage(export_state)
         .invoke_handler(tauri::generate_handler![
             // Media commands
             media::import_media_files,
@@ -58,6 +62,9 @@ fn main() {
             timeline::split_timeline_clip,
             timeline::delete_timeline_clip,
             timeline::create_track,
+            // Export commands
+            export::export_timeline,
+            export::cancel_export,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

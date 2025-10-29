@@ -48,10 +48,28 @@ pub async fn import_media_files(
         }
     }
 
-    // Add successfully imported clips to media library
+    // Add successfully imported clips to BOTH storage locations
     if !clips.is_empty() {
+        // 1. Add to state.media_library (for validation and frontend sync)
         let mut library = state.media_library.lock().unwrap();
         library.extend(clips.clone());
+        drop(library);
+
+        // 2. Add to project.media_library (for export and persistence)
+        let mut project_lock = state.project.lock().unwrap();
+        if let Some(ref mut project) = *project_lock {
+            project.media_library.extend(clips.clone());
+            project.mark_modified();
+            eprintln!(
+                "[Import] Added {} clips to project. Project now has {} clips",
+                clips.len(),
+                project.media_library.len()
+            );
+        } else {
+            eprintln!(
+                "[Import] Warning: No project loaded, clips added to state.media_library only"
+            );
+        }
     }
 
     Ok(ImportResult { clips, errors })

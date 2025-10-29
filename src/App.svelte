@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import MediaLibrary from '$lib/components/MediaLibrary.svelte';
   import VideoPreview from '$lib/components/VideoPreview.svelte';
   import Timeline from '$lib/components/Timeline.svelte';
+  import ExportDialog from '$lib/components/ExportDialog.svelte';
   import { timelineStore, tracks } from '$lib/stores/timeline';
   import { mediaLibrary } from '$lib/stores/media-library';
   import type { MediaClip } from '$lib/types/clip';
@@ -15,6 +16,9 @@
   let currentClipStartTime: number = 0;
   let currentClipInPoint: number = 0;
   let currentClipOutPoint: number = 0;
+  let showExportDialog = false;
+  let showDebugPanel = false; // Global debug toggle
+  let showViewMenu = false; // View menu dropdown
 
   // Subscribe to tracks to find current clip
   $: if ($tracks.length > 0 && $tracks[0].clips.length > 0) {
@@ -53,7 +57,23 @@
     } catch (error) {
       console.error('Failed to create default track:', error);
     }
+
+    // Add global keyboard handler
+    window.addEventListener('keydown', handleGlobalKeyDown);
   });
+
+  onDestroy(() => {
+    window.removeEventListener('keydown', handleGlobalKeyDown);
+  });
+
+  function handleGlobalKeyDown(event: KeyboardEvent) {
+    // Toggle debug panel with Cmd+Shift+D (Mac) or Ctrl+Shift+D (Windows/Linux)
+    if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'D') {
+      event.preventDefault();
+      showDebugPanel = !showDebugPanel;
+      console.log('Debug panel toggled:', showDebugPanel);
+    }
+  }
 
   function handleTimeUpdate(event: CustomEvent<{ time: number }>) {
     // Update timeline when video plays
@@ -91,16 +111,78 @@
   function handlePlayPause(playing: boolean) {
     isTimelinePlaying = playing;
   }
+
+  function handleExportClick() {
+    // Check if there are clips on the timeline
+    if ($tracks.length === 0 || $tracks.every((track) => track.clips.length === 0)) {
+      alert('Please add clips to the timeline before exporting');
+      return;
+    }
+    showExportDialog = true;
+  }
+
+  function handleCloseExportDialog() {
+    showExportDialog = false;
+  }
+
+  function toggleDebugPanel() {
+    showDebugPanel = !showDebugPanel;
+    showViewMenu = false; // Close menu after selection
+  }
+
+  function toggleViewMenu() {
+    showViewMenu = !showViewMenu;
+  }
+
+  // Close menus when clicking outside
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.menu-container')) {
+      showViewMenu = false;
+    }
+  }
 </script>
 
-<main class="app">
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<main class="app" on:click={handleClickOutside}>
   <header class="app-header">
     <div class="logo">
       <h1>ClipForge</h1>
       <span class="version">v0.1.0</span>
     </div>
+
+    <nav class="menubar">
+      <!-- View Menu -->
+      <div class="menu-container">
+        <button class="menu-button" on:click|stopPropagation={toggleViewMenu}>
+          View
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" style="margin-left: 4px;">
+            <path d="M0 2L4 6L8 2H0Z" />
+          </svg>
+        </button>
+        {#if showViewMenu}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <div class="menu-dropdown" on:click|stopPropagation>
+            <button class="menu-item" on:click={toggleDebugPanel}>
+              <span class="menu-check">{showDebugPanel ? '✓' : ''}</span>
+              Debug Panel
+              <span class="menu-shortcut">⌘⇧D</span>
+            </button>
+          </div>
+        {/if}
+      </div>
+    </nav>
+
     <div class="toolbar">
-      <!-- Toolbar items will be added in later phases -->
+      <button class="export-button" on:click={handleExportClick}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 12L3 7h3V1h4v6h3L8 12z" />
+          <path d="M14 14H2v-2h12v2z" />
+        </svg>
+        Export
+      </button>
     </div>
   </header>
 
@@ -123,10 +205,17 @@
       </div>
 
       <div class="timeline-section">
-        <Timeline bind:currentTime={videoCurrentTime} bind:duration={timelineDuration} />
+        <Timeline
+          bind:currentTime={videoCurrentTime}
+          bind:duration={timelineDuration}
+          bind:showDebug={showDebugPanel}
+        />
       </div>
     </section>
   </div>
+
+  <!-- Export Dialog -->
+  <ExportDialog visible={showExportDialog} onClose={handleCloseExportDialog} />
 </main>
 
 <style>
@@ -176,9 +265,111 @@
     color: #666;
   }
 
+  .menubar {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: 1rem;
+  }
+
+  .menu-container {
+    position: relative;
+  }
+
+  .menu-button {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    color: #ccc;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .menu-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  .menu-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    min-width: 200px;
+    z-index: 1000;
+    padding: 0.25rem 0;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: #ccc;
+    border: none;
+    text-align: left;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  .menu-check {
+    width: 20px;
+    margin-right: 8px;
+    color: #0078d4;
+    font-weight: bold;
+  }
+
+  .menu-shortcut {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #888;
+    padding-left: 1rem;
+  }
+
   .toolbar {
     display: flex;
     gap: 0.5rem;
+  }
+
+  .export-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .export-button:hover {
+    background: #005a9e;
+  }
+
+  .export-button svg {
+    flex-shrink: 0;
   }
 
   .app-content {
