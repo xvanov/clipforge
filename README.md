@@ -6,9 +6,9 @@ A powerful desktop video editor built with Tauri, Svelte, and FFmpeg. Import vid
 
 ## Features
 
-### MVP (Current Status)
+### ✅ MVP Complete
 
-- ✅ **Phase 1 & 2 Complete**: Project structure and foundation
+- ✅ **Phase 1 & 2**: Project structure and foundation
 - ✅ **User Story 1**: Import and Basic Video Playback (with MOV/ProRes support)
 - ✅ **User Story 2**: Timeline Editing and Trimming (drag-drop, trim, reorder clips)
 - ✅ **User Story 3**: Video Export (FFmpeg export with hardware acceleration)
