@@ -4,6 +4,7 @@
   import VideoPreview from '$lib/components/VideoPreview.svelte';
   import Timeline from '$lib/components/Timeline.svelte';
   import ExportDialog from '$lib/components/ExportDialog.svelte';
+  import RecordingControls from '$lib/components/RecordingControls.svelte';
   import { timelineStore, tracks } from '$lib/stores/timeline';
   import { mediaLibrary } from '$lib/stores/media-library';
   import type { MediaClip } from '$lib/types/clip';
@@ -19,6 +20,7 @@
   let showExportDialog = false;
   let showDebugPanel = false; // Global debug toggle
   let showViewMenu = false; // View menu dropdown
+  let sidebarTab: 'media' | 'recording' = 'media'; // Sidebar tab selection
 
   // Subscribe to tracks to find current clip
   $: if ($tracks.length > 0 && $tracks[0].clips.length > 0) {
@@ -188,7 +190,30 @@
 
   <div class="app-content">
     <aside class="sidebar">
-      <MediaLibrary />
+      <div class="sidebar-tabs">
+        <button
+          class="tab-button"
+          class:active={sidebarTab === 'media'}
+          on:click={() => (sidebarTab = 'media')}
+        >
+          Media Library
+        </button>
+        <button
+          class="tab-button"
+          class:active={sidebarTab === 'recording'}
+          on:click={() => (sidebarTab = 'recording')}
+        >
+          Recording
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        {#if sidebarTab === 'media'}
+          <MediaLibrary />
+        {:else if sidebarTab === 'recording'}
+          <RecordingControls />
+        {/if}
+      </div>
     </aside>
 
     <section class="main-area">
@@ -379,12 +404,48 @@
   }
 
   .sidebar {
-    width: 280px;
+    width: 320px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     background: #1e1e1e;
     border-right: 1px solid #333;
+  }
+
+  .sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid #333;
+    background: #252525;
+  }
+
+  .tab-button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: #888;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-button:hover {
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .tab-button.active {
+    color: #0078d4;
+    border-bottom-color: #0078d4;
+    background: #1e1e1e;
+  }
+
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
 
   .main-area {

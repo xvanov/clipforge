@@ -3,4 +3,5 @@ pub mod export;
 pub mod media;
 pub mod playback;
 pub mod project;
+pub mod recording;
 pub mod timeline;

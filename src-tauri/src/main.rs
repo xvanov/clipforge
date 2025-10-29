@@ -9,13 +9,11 @@
 mod commands;
 mod ffmpeg;
 mod models;
+mod platform;
 mod storage;
 
-#[cfg(target_os = "macos")]
-mod platform;
-
 use commands::media::AppState;
-use commands::{export, media, playback, project, timeline};
+use commands::{export, media, playback, project, recording, timeline};
 use std::sync::{Arc, Mutex};
 use storage::CacheDb;
 
@@ -65,6 +63,12 @@ fn main() {
             // Export commands
             export::export_timeline,
             export::cancel_export,
+            // Recording commands
+            recording::request_recording_permissions,
+            recording::list_recording_sources,
+            recording::start_recording,
+            recording::stop_recording,
+            recording::get_recording_session,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -184,21 +184,21 @@ cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check
 
 ### Implementation for User Story 4
 
-- [ ] T076 [P] [US4] Create RecordingSession struct in src-tauri/src/models/recording.rs
-- [ ] T077 [P] [US4] Create RecordingControls Svelte component in src/lib/components/RecordingControls.svelte
-- [ ] T078 [P] [US4] Create platform-specific module structure in src-tauri/src/platform/mod.rs
-- [ ] T079 [US4] Implement request_recording_permissions Tauri command in src-tauri/src/commands/recording.rs
-- [ ] T080 [US4] Implement list_recording_sources Tauri command in src-tauri/src/commands/recording.rs
-- [ ] T081 [US4] Implement start_recording Tauri command in src-tauri/src/commands/recording.rs
-- [ ] T082 [US4] Implement stop_recording Tauri command in src-tauri/src/commands/recording.rs
-- [ ] T083 [US4] Implement macOS screen recording using AVFoundation in src-tauri/src/platform/macos.rs (conditional compilation)
-- [ ] T084 [US4] Implement Windows screen recording using Windows.Graphics.Capture in src-tauri/src/platform/windows.rs (conditional compilation)
-- [ ] T085 [US4] Implement recording duration tracking with Tauri events in src-tauri/src/commands/recording.rs
-- [ ] T086 [US4] Create screen source selector UI in RecordingControls.svelte
-- [ ] T087 [US4] Create webcam preview UI in RecordingControls.svelte
-- [ ] T088 [US4] Implement recording indicator (elapsed time) in RecordingControls.svelte
-- [ ] T089 [US4] Wire up recording completion to media library (auto-import) in src-tauri/src/commands/recording.rs
-- [ ] T090 [US4] Add Recording panel to main app layout in src/App.svelte
+- [x] T076 [P] [US4] Create RecordingSession struct in src-tauri/src/models/recording.rs
+- [x] T077 [P] [US4] Create RecordingControls Svelte component in src/lib/components/RecordingControls.svelte
+- [x] T078 [P] [US4] Create platform-specific module structure in src-tauri/src/platform/mod.rs
+- [x] T079 [US4] Implement request_recording_permissions Tauri command in src-tauri/src/commands/recording.rs
+- [x] T080 [US4] Implement list_recording_sources Tauri command in src-tauri/src/commands/recording.rs
+- [x] T081 [US4] Implement start_recording Tauri command in src-tauri/src/commands/recording.rs
+- [x] T082 [US4] Implement stop_recording Tauri command in src-tauri/src/commands/recording.rs
+- [x] T083 [US4] Implement macOS screen recording using AVFoundation in src-tauri/src/platform/macos.rs (conditional compilation)
+- [x] T084 [US4] Implement Windows screen recording using Windows.Graphics.Capture in src-tauri/src/platform/windows.rs (conditional compilation)
+- [x] T085 [US4] Implement recording duration tracking with Tauri events in src-tauri/src/commands/recording.rs
+- [x] T086 [US4] Create screen source selector UI in RecordingControls.svelte
+- [x] T087 [US4] Create webcam preview UI in RecordingControls.svelte
+- [x] T088 [US4] Implement recording indicator (elapsed time) in RecordingControls.svelte
+- [x] T089 [US4] Wire up recording completion to media library (auto-import) in src-tauri/src/commands/recording.rs
+- [x] T090 [US4] Add Recording panel to main app layout in src/App.svelte
 
 **Checkpoint**: ✅ User Story 4 complete! Users can record screen/webcam in addition to importing files. **Run full CI/CD validation before proceeding to Phase 7.**
 
