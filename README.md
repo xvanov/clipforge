@@ -6,12 +6,12 @@ A powerful desktop video editor built with Tauri, Svelte, and FFmpeg. Import vid
 
 ## Features
 
-### MVP (Currently Implementing)
+### ✅ MVP Complete
 
-- ✅ **Phase 1 & 2 Complete**: Project structure and foundation
+- ✅ **Phase 1 & 2**: Project structure and foundation
 - ✅ **User Story 1**: Import and Basic Video Playback (with MOV/ProRes support)
-- 🚧 **User Story 2**: Timeline Editing and Trimming
-- 🚧 **User Story 3**: Video Export
+- ✅ **User Story 2**: Timeline Editing and Trimming (drag-drop, trim, reorder clips)
+- ✅ **User Story 3**: Video Export (FFmpeg export with hardware acceleration)
 
 ### Planned Features
 
@@ -227,8 +227,8 @@ echo "✅ ALL CI/CD CHECKS PASSED!"
 
 **Expected Output:**
 
-- ✅ Frontend: 27 tests passing, 0 linting errors, 0 type errors, formatting valid
-- ✅ Rust: 9 tests passing, 0 clippy warnings, formatting valid
+- ✅ Frontend: 33 tests passing, 0 linting errors, 0 type errors, formatting valid
+- ✅ Rust: 29 tests passing (1 ignored), 0 clippy warnings, formatting valid
 
 #### Fixing Issues
 
@@ -268,13 +268,15 @@ npm run tauri:build
 - [x] T027-T040b: Media import, thumbnails, video preview, proxy generation
 - **Achievement**: Full video import and playback with MOV/ProRes support
 
-### Phase 4: User Story 2 (Timeline Editing) 📋 TODO
+### Phase 4: User Story 2 (Timeline Editing) ✅ COMPLETE
 
-- [ ] T041-T061: Canvas timeline, drag-drop, trim/split
+- [x] T041-T061: Canvas timeline, drag-drop, trim/split, sequential playback
+- **Achievement**: Full non-linear video editing with visual timeline
 
-### Phase 5: User Story 3 (Export) 📋 TODO
+### Phase 5: User Story 3 (Export) ✅ COMPLETE
 
-- [ ] T062-T075: FFmpeg export pipeline
+- [x] T062-T075: FFmpeg export pipeline with progress tracking
+- **Achievement**: Export edited videos with timeline edits preserved (trim, reorder)
 
 See [`specs/001-clipforge/tasks.md`](specs/001-clipforge/tasks.md) for complete task list.
 
@@ -395,4 +397,4 @@ MIT © 2025 ClipForge Team
 
 ---
 
-**Status**: 🚧 Active Development - MVP in progress (Phases 1-2 complete)
+**Status**: ✅ MVP Complete - Phases 1-5 (Import, Edit, Export)

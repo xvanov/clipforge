@@ -171,19 +171,19 @@
   function handleTimeUpdate() {
     if (videoElement) {
       localTime = videoElement.currentTime;
-      duration = videoElement.duration || 0;
 
-      // Check if we've reached the out_point of the current clip
-      if (clipOutPoint > 0 && localTime >= clipOutPoint) {
-        // Pause at the out_point
-        videoElement.pause();
-        // Keep the video at the out_point (don't let it drift past)
-        videoElement.currentTime = clipOutPoint;
-        return;
-      }
+      // Use trimmed duration (out_point - in_point) instead of full video duration
+      duration = clipOutPoint > 0 ? clipOutPoint - clipInPoint : videoElement.duration || 0;
 
-      // Dispatch time updates to parent
+      // Dispatch time updates to parent (App.svelte handles clip transitions)
       dispatch('timeupdate', { time: localTime });
+
+      // Only pause at out_point if we're beyond it (safety check)
+      // Don't pause exactly at out_point during timeline playback - let parent handle transitions
+      if (clipOutPoint > 0 && localTime > clipOutPoint + 0.1) {
+        videoElement.pause();
+        videoElement.currentTime = clipOutPoint;
+      }
     }
   }
 
@@ -267,8 +267,8 @@
       <span class="time">{formatTime(localTime)}</span>
       <input
         type="range"
-        min="0"
-        max={duration || 0}
+        min={clipInPoint || 0}
+        max={clipOutPoint || duration}
         value={localTime}
         on:input={seek}
         disabled={!currentClip}
