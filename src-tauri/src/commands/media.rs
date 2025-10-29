@@ -48,10 +48,28 @@ pub async fn import_media_files(
         }
     }
 
-    // Add successfully imported clips to media library
+    // Add successfully imported clips to BOTH storage locations
     if !clips.is_empty() {
+        // 1. Add to state.media_library (for validation and frontend sync)
         let mut library = state.media_library.lock().unwrap();
         library.extend(clips.clone());
+        drop(library);
+
+        // 2. Add to project.media_library (for export and persistence)
+        let mut project_lock = state.project.lock().unwrap();
+        if let Some(ref mut project) = *project_lock {
+            project.media_library.extend(clips.clone());
+            project.mark_modified();
+            eprintln!(
+                "[Import] Added {} clips to project. Project now has {} clips",
+                clips.len(),
+                project.media_library.len()
+            );
+        } else {
+            eprintln!(
+                "[Import] Warning: No project loaded, clips added to state.media_library only"
+            );
+        }
     }
 
     Ok(ImportResult { clips, errors })
@@ -114,7 +132,21 @@ async fn import_single_file(path: &str, state: &State<'_, AppState>) -> Result<M
                     let mut library = state_clone.media_library.lock().unwrap();
                     if let Some(clip) = library.iter_mut().find(|c| c.id == clip_id_clone) {
                         clip.proxy_path = Some(proxy_clone.clone());
-                        println!("  Updated clip in library with proxy path");
+                        println!("  Updated clip in state.media_library with proxy path");
+
+                        // Also update project.media_library for export consistency
+                        let mut project_lock = state_clone.project.lock().unwrap();
+                        if let Some(ref mut project) = *project_lock {
+                            if let Some(project_clip) = project
+                                .media_library
+                                .iter_mut()
+                                .find(|c| c.id == clip_id_clone)
+                            {
+                                project_clip.proxy_path = Some(proxy_clone.clone());
+                                project.mark_modified();
+                                println!("  Updated clip in project.media_library with proxy path");
+                            }
+                        }
 
                         // Update cache database
                         let cache_db = state_clone.cache_db.lock().unwrap();
