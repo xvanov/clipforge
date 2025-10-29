@@ -146,7 +146,9 @@ pub async fn export_timeline(
     // Spawn export task
     let job_id_clone = job_id.clone();
     let app_handle_clone = app_handle.clone();
-    let export_state_inner = export_state.inner().clone();
+    let export_state_arc = Arc::new(export_state.inner().clone());
+    let export_state_for_complete = export_state_arc.clone();
+    let export_state_for_error = export_state_arc.clone();
     let output_path_clone = request.output_path.clone();
 
     tokio::spawn(async move {
@@ -155,7 +157,7 @@ pub async fn export_timeline(
             job_id_clone.clone(),
             total_duration,
             app_handle_clone.clone(),
-            Arc::new(export_state_inner.clone()),
+            export_state_arc,
         )
         .await
         {
@@ -170,7 +172,7 @@ pub async fn export_timeline(
                 );
 
                 // Update job status
-                let mut jobs = export_state_inner.jobs.lock().unwrap();
+                let mut jobs = export_state_for_complete.jobs.lock().unwrap();
                 if let Some(handle) = jobs.get_mut(&job_id_clone) {
                     handle.job.status = ExportStatus::Complete;
                 }
@@ -186,7 +188,7 @@ pub async fn export_timeline(
                 );
 
                 // Update job status
-                let mut jobs = export_state_inner.jobs.lock().unwrap();
+                let mut jobs = export_state_for_error.jobs.lock().unwrap();
                 if let Some(handle) = jobs.get_mut(&job_id_clone) {
                     handle.job.status = ExportStatus::Failed;
                 }

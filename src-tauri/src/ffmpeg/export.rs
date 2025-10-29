@@ -363,18 +363,18 @@ mod tests {
     #[test]
     fn test_generate_concat_single_clip_full_duration() {
         let temp_dir = TempDir::new().unwrap();
-        
+
         let media_clip = mock_media_clip("clip1", 10.0, "/path/to/video.mp4");
         let timeline_clip = mock_timeline_clip("clip1", "track1", 0.0, 0.0, 10.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline_clip]);
         let media_library = vec![media_clip];
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_ok());
         let concat_path = result.unwrap();
-        
+
         // Read and verify concat file content
         let content = std::fs::read_to_string(concat_path).unwrap();
         assert!(content.contains("ffconcat version 1.0"));
@@ -386,18 +386,18 @@ mod tests {
     #[test]
     fn test_generate_concat_single_clip_trimmed() {
         let temp_dir = TempDir::new().unwrap();
-        
+
         let media_clip = mock_media_clip("clip1", 10.0, "/path/to/video.mp4");
         let timeline_clip = mock_timeline_clip("clip1", "track1", 0.0, 2.0, 5.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline_clip]);
         let media_library = vec![media_clip];
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_ok());
         let concat_path = result.unwrap();
-        
+
         let content = std::fs::read_to_string(concat_path).unwrap();
         assert!(content.contains("inpoint 2.000000"));
         assert!(content.contains("outpoint 5.000000"));
@@ -406,31 +406,31 @@ mod tests {
     #[test]
     fn test_generate_concat_multiple_clips_ordered() {
         let temp_dir = TempDir::new().unwrap();
-        
+
         let media1 = mock_media_clip("clip1", 5.0, "/path/to/video1.mp4");
         let media2 = mock_media_clip("clip2", 7.0, "/path/to/video2.mp4");
         let media3 = mock_media_clip("clip3", 3.0, "/path/to/video3.mp4");
-        
+
         // Add clips in non-chronological order (should be sorted by start_time)
         let timeline1 = mock_timeline_clip("clip1", "track1", 5.0, 0.0, 5.0);
         let timeline2 = mock_timeline_clip("clip2", "track1", 0.0, 0.0, 7.0);
         let timeline3 = mock_timeline_clip("clip3", "track1", 10.0, 0.0, 3.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline1, timeline2, timeline3]);
         let media_library = vec![media1, media2, media3];
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_ok());
         let concat_path = result.unwrap();
-        
+
         let content = std::fs::read_to_string(concat_path).unwrap();
-        
+
         // Verify clips appear in chronological order (clip2, clip1, clip3)
         let clip2_pos = content.find("video2.mp4").unwrap();
         let clip1_pos = content.find("video1.mp4").unwrap();
         let clip3_pos = content.find("video3.mp4").unwrap();
-        
+
         assert!(clip2_pos < clip1_pos);
         assert!(clip1_pos < clip3_pos);
     }
@@ -438,20 +438,20 @@ mod tests {
     #[test]
     fn test_generate_concat_escapes_paths_with_quotes() {
         let temp_dir = TempDir::new().unwrap();
-        
+
         let media_clip = mock_media_clip("clip1", 5.0, "/path/to/my'video.mp4");
         let timeline_clip = mock_timeline_clip("clip1", "track1", 0.0, 0.0, 5.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline_clip]);
         let media_library = vec![media_clip];
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_ok());
         let concat_path = result.unwrap();
-        
+
         let content = std::fs::read_to_string(concat_path).unwrap();
-        
+
         // Verify path is escaped: ' becomes '\''
         assert!(content.contains("my'\\''video.mp4"));
     }
@@ -459,25 +459,21 @@ mod tests {
     #[test]
     fn test_generate_concat_uses_proxy_when_available() {
         let temp_dir = TempDir::new().unwrap();
-        
-        let media_clip = mock_media_clip_with_proxy(
-            "clip1",
-            5.0,
-            "/path/to/source.mov",
-            "/path/to/proxy.mp4"
-        );
+
+        let media_clip =
+            mock_media_clip_with_proxy("clip1", 5.0, "/path/to/source.mov", "/path/to/proxy.mp4");
         let timeline_clip = mock_timeline_clip("clip1", "track1", 0.0, 0.0, 5.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline_clip]);
         let media_library = vec![media_clip];
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_ok());
         let concat_path = result.unwrap();
-        
+
         let content = std::fs::read_to_string(concat_path).unwrap();
-        
+
         // Should use proxy path, not source
         assert!(content.contains("proxy.mp4"));
         assert!(!content.contains("source.mov"));
@@ -486,15 +482,15 @@ mod tests {
     #[test]
     fn test_generate_concat_fails_on_missing_media_clip() {
         let temp_dir = TempDir::new().unwrap();
-        
+
         // Timeline references a clip that doesn't exist in media library
         let timeline_clip = mock_timeline_clip("nonexistent", "track1", 0.0, 0.0, 5.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline_clip]);
         let media_library = vec![]; // Empty - clip not found
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Media clip not found"));
     }
@@ -502,16 +498,16 @@ mod tests {
     #[test]
     fn test_generate_concat_fails_on_no_main_track() {
         let temp_dir = TempDir::new().unwrap();
-        
+
         let media_clip = mock_media_clip("clip1", 5.0, "/path/to/video.mp4");
         let media_library = vec![media_clip];
-        
+
         // Create overlay track instead of main
         let mut track = mock_track_with_clips("Overlay", vec![]);
         track.track_type = TrackType::Overlay;
-        
+
         let result = generate_concat_file(&[track], &media_library, temp_dir.path());
-        
+
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("No main track found"));
     }
@@ -525,19 +521,19 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let concat_path = temp_dir.path().join("concat.txt");
         let output_path = temp_dir.path().join("output.mp4");
-        
+
         let settings = ExportSettings {
             hardware_acceleration: true,
             codec: crate::models::export::VideoCodec::H264,
             ..Default::default()
         };
-        
+
         let result = build_export_command(&concat_path, &output_path, &settings);
-        
+
         assert!(result.is_ok());
         let cmd = result.unwrap();
         let cmd_str = format!("{:?}", cmd);
-        
+
         #[cfg(target_os = "macos")]
         {
             assert!(cmd_str.contains("h264_videotoolbox"));
@@ -551,19 +547,19 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let concat_path = temp_dir.path().join("concat.txt");
         let output_path = temp_dir.path().join("output.mp4");
-        
+
         let settings = ExportSettings {
             hardware_acceleration: false,
             codec: crate::models::export::VideoCodec::H264,
             ..Default::default()
         };
-        
+
         let result = build_export_command(&concat_path, &output_path, &settings);
-        
+
         assert!(result.is_ok());
         let cmd = result.unwrap();
         let cmd_str = format!("{:?}", cmd);
-        
+
         // Software encoding should use libx264 and CRF
         assert!(cmd_str.contains("libx264"));
         assert!(cmd_str.contains("-crf"));
@@ -575,18 +571,18 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let concat_path = temp_dir.path().join("concat.txt");
         let output_path = temp_dir.path().join("output.mp4");
-        
+
         let settings = ExportSettings {
             resolution: crate::models::export::ExportResolution::FullHD,
             ..Default::default()
         };
-        
+
         let result = build_export_command(&concat_path, &output_path, &settings);
-        
+
         assert!(result.is_ok());
         let cmd = result.unwrap();
         let cmd_str = format!("{:?}", cmd);
-        
+
         // Should have scale filter
         assert!(cmd_str.contains("-vf"));
         assert!(cmd_str.contains("scale=1920:1080"));
@@ -597,15 +593,15 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let concat_path = temp_dir.path().join("concat.txt");
         let output_path = temp_dir.path().join("output.mp4");
-        
+
         let settings = ExportSettings::default();
-        
+
         let result = build_export_command(&concat_path, &output_path, &settings);
-        
+
         assert!(result.is_ok());
         let cmd = result.unwrap();
         let cmd_str = format!("{:?}", cmd);
-        
+
         // Should have audio codec and bitrate
         assert!(cmd_str.contains("-c:a"));
         assert!(cmd_str.contains("-b:a"));
@@ -619,11 +615,11 @@ mod tests {
     fn test_calculate_duration_single_track() {
         let timeline1 = mock_timeline_clip("clip1", "track1", 0.0, 0.0, 5.0);
         let timeline2 = mock_timeline_clip("clip2", "track1", 5.0, 0.0, 7.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline1, timeline2]);
-        
+
         let duration = calculate_timeline_duration(&[track]);
-        
+
         // Clip1: 0-5s, Clip2: 5-12s, total = 12s
         assert_eq!(duration, 12.0);
     }
@@ -632,12 +628,12 @@ mod tests {
     fn test_calculate_duration_multiple_tracks() {
         let timeline1 = mock_timeline_clip("clip1", "track1", 0.0, 0.0, 10.0);
         let track1 = mock_track_with_clips("Track 1", vec![timeline1]);
-        
+
         let timeline2 = mock_timeline_clip("clip2", "track2", 0.0, 0.0, 15.0);
         let track2 = mock_track_with_clips("Track 2", vec![timeline2]);
-        
+
         let duration = calculate_timeline_duration(&[track1, track2]);
-        
+
         // Should use longest track duration
         assert_eq!(duration, 15.0);
     }
@@ -647,11 +643,11 @@ mod tests {
         // Clip at start_time=0, but inpoint=2, outpoint=8
         // Actual duration should be 6s (not 8s)
         let timeline = mock_timeline_clip("clip1", "track1", 0.0, 2.0, 8.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline]);
-        
+
         let duration = calculate_timeline_duration(&[track]);
-        
+
         // Duration = start_time + (outpoint - inpoint) = 0 + (8 - 2) = 6
         assert_eq!(duration, 6.0);
     }
@@ -659,9 +655,9 @@ mod tests {
     #[test]
     fn test_calculate_duration_empty_tracks() {
         let track = mock_track_with_clips("Main Track", vec![]);
-        
+
         let duration = calculate_timeline_duration(&[track]);
-        
+
         assert_eq!(duration, 0.0);
     }
 
@@ -669,11 +665,11 @@ mod tests {
     fn test_calculate_duration_with_gaps() {
         let timeline1 = mock_timeline_clip("clip1", "track1", 0.0, 0.0, 3.0);
         let timeline2 = mock_timeline_clip("clip2", "track1", 10.0, 0.0, 5.0);
-        
+
         let track = mock_track_with_clips("Main Track", vec![timeline1, timeline2]);
-        
+
         let duration = calculate_timeline_duration(&[track]);
-        
+
         // Clip1: 0-3s, Clip2: 10-15s, total timeline duration = 15s
         assert_eq!(duration, 15.0);
     }
@@ -737,13 +733,13 @@ mod tests {
     fn test_full_import_edit_export_workflow() {
         // This test would require actual video files and FFmpeg execution
         // Only run manually or in CI
-        
+
         // TODO: Implement when we have tiny test fixtures
         // 1. Import tiny test video (100ms)
         // 2. Add to timeline with trim
         // 3. Export
         // 4. Verify output file exists and is valid
-        
+
         println!("E2E test requires real video fixtures - implement later");
     }
 }

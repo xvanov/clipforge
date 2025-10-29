@@ -119,14 +119,16 @@
     }
 
     try {
-      exporting = true;
       progress = 0;
       currentFrame = 0;
       totalFrames = 0;
       eta = 0;
 
-      // Set up event listeners
+      // Set up event listeners FIRST
       await setupEventListeners();
+
+      // Only set exporting AFTER listeners are ready
+      exporting = true;
 
       const request: ExportRequest = {
         output_path: outputPath,
@@ -158,12 +160,16 @@
   }
 
   function handleClose() {
+    // Always clean up listeners
+    cleanupListeners();
+
     if (exporting) {
-      const confirm = window.confirm('Export is in progress. Are you sure you want to close?');
-      if (!confirm) return;
+      const userConfirmed = window.confirm(
+        'Export is in progress. Are you sure you want to close?'
+      );
+      if (!userConfirmed) return;
       handleCancel();
     }
-    cleanupListeners();
     onClose();
   }
 
