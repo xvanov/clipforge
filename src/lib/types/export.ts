@@ -58,3 +58,4 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   audio_bitrate: 192,
   hardware_acceleration: true,
 };
+
