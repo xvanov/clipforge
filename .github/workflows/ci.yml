@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -41,12 +41,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install FFmpeg (macOS)
-        if: matrix.os == 'macos-latest'
         run: brew install ffmpeg
-
-      - name: Install FFmpeg (Windows)
-        if: matrix.os == 'windows-latest'
-        run: choco install ffmpeg
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -107,7 +102,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -122,12 +117,7 @@ jobs:
           cache: 'npm'
 
       - name: Install FFmpeg (macOS)
-        if: matrix.os == 'macos-latest'
         run: brew install ffmpeg
-
-      - name: Install FFmpeg (Windows)
-        if: matrix.os == 'windows-latest'
-        run: choco install ffmpeg
 
       - name: Install dependencies
         run: npm ci
