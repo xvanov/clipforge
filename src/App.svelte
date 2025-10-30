@@ -5,6 +5,7 @@
   import Timeline from '$lib/components/Timeline.svelte';
   import ExportDialog from '$lib/components/ExportDialog.svelte';
   import RecordingControls from '$lib/components/RecordingControls.svelte';
+  import CaptionsPanel from '$lib/components/CaptionsPanel.svelte';
   import { timelineStore, tracks } from '$lib/stores/timeline';
   import { mediaLibrary } from '$lib/stores/media-library';
   import type { MediaClip } from '$lib/types/clip';
@@ -20,7 +21,7 @@
   let showExportDialog = false;
   let showDebugPanel = false; // Global debug toggle
   let showViewMenu = false; // View menu dropdown
-  let sidebarTab: 'media' | 'recording' = 'media'; // Sidebar tab selection
+  let sidebarTab: 'media' | 'recording' | 'captions' = 'media'; // Sidebar tab selection
 
   // Subscribe to tracks to find current clip
   $: if ($tracks.length > 0 && $tracks[0].clips.length > 0) {
@@ -205,6 +206,13 @@
         >
           Recording
         </button>
+        <button
+          class="tab-button"
+          class:active={sidebarTab === 'captions'}
+          on:click={() => (sidebarTab = 'captions')}
+        >
+          AI Captions
+        </button>
       </div>
 
       <div class="sidebar-content">
@@ -212,6 +220,18 @@
           <MediaLibrary />
         {:else if sidebarTab === 'recording'}
           <RecordingControls />
+        {:else if sidebarTab === 'captions'}
+          {#if currentClipForPreview}
+            <CaptionsPanel
+              clipId={currentClipForPreview.id}
+              captions={currentClipForPreview.captions || []}
+            />
+          {:else}
+            <div class="no-clip-message">
+              <p>No clip selected</p>
+              <p class="hint">Add a clip to the timeline to generate captions</p>
+            </div>
+          {/if}
         {/if}
       </div>
     </aside>
@@ -446,6 +466,26 @@
     flex: 1;
     overflow-y: auto;
     min-height: 0;
+  }
+
+  .no-clip-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #888;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .no-clip-message p {
+    margin: 0.5rem 0;
+  }
+
+  .no-clip-message .hint {
+    font-size: 0.875rem;
+    color: #666;
   }
 
   .main-area {

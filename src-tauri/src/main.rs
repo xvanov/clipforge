@@ -6,6 +6,7 @@
     windows_subsystem = "windows"
 )]
 
+mod ai;
 mod commands;
 mod ffmpeg;
 mod models;
@@ -13,7 +14,7 @@ mod platform;
 mod storage;
 
 use commands::media::AppState;
-use commands::{export, media, playback, project, recording, timeline};
+use commands::{captions, export, media, playback, project, recording, timeline};
 use std::sync::{Arc, Mutex};
 use storage::CacheDb;
 
@@ -69,6 +70,10 @@ fn main() {
             recording::start_recording,
             recording::stop_recording,
             recording::get_recording_session,
+            // Caption commands
+            captions::generate_captions,
+            captions::update_caption,
+            captions::delete_caption,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

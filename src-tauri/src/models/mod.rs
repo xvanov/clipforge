@@ -1,3 +1,4 @@
+pub mod caption;
 pub mod clip;
 pub mod export;
 pub mod project;

@@ -200,7 +200,35 @@ cd src-tauri && cargo test && cargo clippy -- -D warnings && cargo fmt --check
 - [x] T089 [US4] Wire up recording completion to media library (auto-import) in src-tauri/src/commands/recording.rs
 - [x] T090 [US4] Add Recording panel to main app layout in src/App.svelte
 
-**Checkpoint**: ✅ User Story 4 complete! Users can record screen/webcam in addition to importing files. **Run full CI/CD validation before proceeding to Phase 7.**
+**Checkpoint**: ✅ User Story 4 complete! Users can record screen/webcam in addition to importing files. **Run full CI/CD validation before proceeding to Phase 6.5.**
+
+---
+
+## Phase 6.5: User Story 6 - AI Speech-to-Text Captions (Priority: P4)
+
+**Goal**: Enable users to automatically generate captions from video audio using local AI processing
+
+**Independent Test**: Import video with speech, click "Generate Captions", verify timestamped captions appear synced to audio
+
+### Implementation for User Story 6
+
+- [x] T091 [P] [US6] Create Caption struct serialization in src-tauri/src/models/caption.rs
+- [x] T092 [P] [US6] Create TypeScript Caption types in src/lib/types/caption.ts
+- [x] T093 [P] [US6] Implement audio extraction function in src-tauri/src/ffmpeg/audio.rs (WAV PCM format)
+- [x] T094 [US6] Create Whisper.cpp integration module in src-tauri/src/ai/whisper.rs
+- [x] T095 [US6] Implement Whisper.cpp CLI wrapper for transcription in src-tauri/src/ai/whisper.rs
+- [x] T096 [US6] Implement SRT/JSON parser for Whisper output in src-tauri/src/ai/whisper.rs
+- [x] T097 [US6] Implement generate_captions Tauri command in src-tauri/src/commands/captions.rs
+- [x] T098 [US6] Implement caption progress events in src-tauri/src/commands/captions.rs
+- [x] T099 [P] [US6] Create CaptionsPanel Svelte component in src/lib/components/CaptionsPanel.svelte
+- [x] T100 [P] [US6] Create CaptionTrack canvas renderer in src/lib/canvas/caption-renderer.ts
+- [x] T101 [US6] Implement caption editing UI in CaptionsPanel.svelte (text, timing)
+- [x] T102 [US6] Add Generate Captions button to MediaClipCard component
+- [x] T103 [US6] Implement caption overlay in VideoPreview component
+- [x] T104 [US6] Add captions to export pipeline in src-tauri/src/ffmpeg/export.rs (burn-in or SRT)
+- [x] T105 [US6] Wire up caption generation progress events in frontend
+
+**Checkpoint**: ✅ User Story 6 complete! Users can generate AI captions for accessible content. **Run full CI/CD validation before proceeding to Phase 7.**
 
 ---
 
@@ -381,7 +409,7 @@ With multiple developers:
 
 ## Summary
 
-**Total Tasks**: 124 tasks
+**Total Tasks**: 139 tasks
 
 **Tasks by Phase**:
 
@@ -391,6 +419,7 @@ With multiple developers:
 - Phase 4 (US2 - Timeline Editing): 21 tasks
 - Phase 5 (US3 - Export): 14 tasks
 - Phase 6 (US4 - Recording): 15 tasks
+- Phase 6.5 (US6 - AI Captions): 15 tasks
 - Phase 7 (US5 - Multi-Track): 10 tasks
 - Phase 8 (Project Management): 10 tasks
 - Phase 9 (Polish): 14 tasks

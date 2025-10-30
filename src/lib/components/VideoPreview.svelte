@@ -3,6 +3,7 @@
   import { invoke } from '@tauri-apps/api';
   import { convertFileSrc } from '@tauri-apps/api/tauri';
   import type { MediaClip } from '$lib/types/clip';
+  import type { Caption } from '$lib/types/caption';
 
   const dispatch = createEventDispatcher();
 
@@ -20,6 +21,20 @@
   let playbackError = '';
   let isLoadingProxy = false;
   let previousClipId: string | null = null;
+
+  // Caption display
+  let currentCaption: Caption | null = null;
+
+  // Update current caption based on playback time
+  $: if (currentClip && currentClip.captions && currentClip.captions.length > 0) {
+    const relativeTime = currentTime - clipStartTime + clipInPoint;
+    currentCaption =
+      currentClip.captions.find(
+        (c) => c.start_time <= relativeTime && c.end_time >= relativeTime
+      ) || null;
+  } else {
+    currentCaption = null;
+  }
 
   // When clip changes or playback starts, seek to the correct in-point
   $: if (currentClip && currentClip.id !== previousClipId && videoElement) {
@@ -291,6 +306,12 @@
     </div>
   </div>
 
+  {#if currentCaption}
+    <div class="caption-overlay">
+      {currentCaption.text}
+    </div>
+  {/if}
+
   {#if currentClip}
     <div class="info-bar">
       <span class="clip-name">{currentClip.name}</span>
@@ -522,5 +543,22 @@
   .loading-overlay .hint {
     font-size: 0.85rem;
     color: #999;
+  }
+
+  /* Caption overlay */
+  .caption-overlay {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 80%;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 18px;
+    text-align: center;
+    border-radius: 4px;
+    line-height: 1.4;
+    z-index: 5;
   }
 </style>

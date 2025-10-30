@@ -1,5 +1,7 @@
 // TypeScript types matching Rust models
 
+import type { Caption } from './caption';
+
 export interface MediaClip {
   id: string;
   name: string;
@@ -17,5 +19,5 @@ export interface MediaClip {
   bitrate: number | null;
   has_audio: boolean;
   imported_at: string; // ISO 8601 datetime
-  captions: string[]; // Caption IDs
+  captions: Caption[]; // Full caption objects
 }

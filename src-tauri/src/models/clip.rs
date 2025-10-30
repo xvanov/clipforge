@@ -1,3 +1,4 @@
+use crate::models::caption::Caption;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +20,7 @@ pub struct MediaClip {
     pub bitrate: Option<i32>,
     pub has_audio: bool,
     pub imported_at: DateTime<Utc>,
-    pub captions: Vec<String>, // Caption IDs - actual Caption model will be added later
+    pub captions: Vec<Caption>,
 }
 
 #[allow(dead_code)]
