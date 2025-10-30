@@ -1,12 +1,43 @@
 <script lang="ts">
   import { invoke } from '@tauri-apps/api';
+  import { listen } from '@tauri-apps/api/event';
   import { open } from '@tauri-apps/api/dialog';
+  import { onMount, onDestroy } from 'svelte';
   import { mediaLibrary, addClipToLibrary } from '$lib/stores/media-library';
   import MediaClipCard from './MediaClipCard.svelte';
   import type { MediaClip } from '$lib/types/clip';
 
   let importing = false;
   let errorMessage = '';
+  let unlistenThumbnail: (() => void) | null = null;
+
+  onMount(async () => {
+    // Listen for thumbnail_generated events from backend
+    unlistenThumbnail = await listen(
+      'thumbnail_generated',
+      (event: { payload: { clip_id: string; thumbnail_path: string } }) => {
+        console.log('Thumbnail generated event received:', event.payload);
+
+        // Update the clip in the store with the new thumbnail path
+        mediaLibrary.update((clips) => {
+          const updatedClips = clips.map((clip) =>
+            clip.id === event.payload.clip_id
+              ? { ...clip, thumbnail_path: event.payload.thumbnail_path }
+              : clip
+          );
+          console.log(
+            'Updated clips:',
+            updatedClips.find((c) => c.id === event.payload.clip_id)
+          );
+          return updatedClips;
+        });
+      }
+    );
+  });
+
+  onDestroy(() => {
+    if (unlistenThumbnail) unlistenThumbnail();
+  });
 
   // T035: Drag-and-drop file import
   function handleDragOver(event: DragEvent) {

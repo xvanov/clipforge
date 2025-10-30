@@ -129,29 +129,29 @@ fn list_microphones() -> Result<Vec<RecordingSource>, String> {
 
     // FFmpeg outputs device list to stderr
     let stderr = String::from_utf8_lossy(&output.stderr);
-    
+
     // Parse audio devices from FFmpeg output
     let mut microphones = Vec::new();
     let mut in_audio_section = false;
-    
+
     for line in stderr.lines() {
         if line.contains("AVFoundation audio devices:") {
             in_audio_section = true;
             continue;
         }
-        
+
         if in_audio_section {
             // Stop when we hit the end or another section
             if line.contains("Error opening input") || line.is_empty() {
                 break;
             }
-            
+
             // Parse line like: "[AVFoundation indev @ 0x...] [0] MacBook Pro Microphone"
             if let Some(idx) = line.find("] [") {
                 if let Some(end_idx) = line[idx + 3..].find(']') {
                     let device_id = &line[idx + 3..idx + 3 + end_idx];
                     let device_name = line[idx + 3 + end_idx + 2..].trim();
-                    
+
                     microphones.push(RecordingSource {
                         id: device_id.to_string(),
                         name: device_name.to_string(),
@@ -160,7 +160,7 @@ fn list_microphones() -> Result<Vec<RecordingSource>, String> {
             }
         }
     }
-    
+
     // If parsing failed, return a default microphone
     if microphones.is_empty() {
         microphones.push(RecordingSource {
@@ -168,11 +168,12 @@ fn list_microphones() -> Result<Vec<RecordingSource>, String> {
             name: "Default Microphone".to_string(),
         });
     }
-    
+
     Ok(microphones)
 }
 
 /// Start recording using FFmpeg with avfoundation input on macOS
+#[allow(clippy::too_many_arguments)]
 pub fn start_recording(
     session_id: String,
     output_path: String,
@@ -245,7 +246,8 @@ pub fn start_recording(
     }
 
     // Add separate microphone input only for webcam-only mode without camera audio
-    if has_audio && audio_sources.contains(&"microphone".to_string()) && !has_screen && !has_camera {
+    if has_audio && audio_sources.contains(&"microphone".to_string()) && !has_screen && !has_camera
+    {
         // Separate microphone input (webcam-only fallback)
         ffmpeg_args.extend_from_slice(&[
             "-f".to_string(),
@@ -262,11 +264,8 @@ pub fn start_recording(
         // Scale webcam to 30% of screen size, adjust brightness/contrast, and overlay in bottom-left with 20px padding
         // eq filter: brightness=0.06 (slightly brighter), contrast=1.1 (slightly more contrast)
         let filter = "[1:v]scale=iw*0.30:ih*0.30,eq=brightness=0.06:contrast=1.1[cam];[0:v][cam]overlay=20:main_h-overlay_h-20";
-        
-        ffmpeg_args.extend_from_slice(&[
-            "-filter_complex".to_string(),
-            filter.to_string(),
-        ]);
+
+        ffmpeg_args.extend_from_slice(&["-filter_complex".to_string(), filter.to_string()]);
     }
 
     // Video codec settings - web-compatible H.264

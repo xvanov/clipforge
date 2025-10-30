@@ -18,7 +18,6 @@
   let selectedScreenId: string | null = null;
   let selectedCameraId: string | null = null;
   let selectedMicrophoneId: string | null = null; // Add microphone selection
-  let browserCameraDeviceId: string | null = null; // Actual browser device ID (UUID)
   let recordingType: 'screen' | 'webcam' | 'screen_webcam' = 'screen';
   let includeAudio = true;
   let includeMicrophone = true;
@@ -76,8 +75,14 @@
     if (unlistenRecordingStarted) unlistenRecordingStarted();
     if (unlistenRecordingProgress) unlistenRecordingProgress();
     if (unlistenRecordingStopped) unlistenRecordingStopped();
-    
-    // Stop webcam stream
+
+    // Clear any pending preview start
+    if (previewTimeout) {
+      clearTimeout(previewTimeout);
+      previewTimeout = null;
+    }
+
+    // Stop webcam stream immediately
     stopWebcamPreview();
   });
 
@@ -108,15 +113,6 @@
       if (sources.microphones.length > 0) {
         selectedMicrophoneId = sources.microphones[0].id;
       }
-
-      // Get browser's actual camera device IDs for preview
-      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        if (videoDevices.length > 0) {
-          browserCameraDeviceId = videoDevices[0].deviceId; // Use first camera for preview
-        }
-      }
     } catch (err) {
       error = `Failed to load sources: ${err}`;
       console.error(error);
@@ -124,54 +120,178 @@
   }
 
   async function startWebcamPreview() {
+    // Prevent multiple simultaneous starts
     if (webcamStream) {
-      stopWebcamPreview();
+      console.log('Webcam stream already exists, skipping start');
+      return;
     }
 
+    // Give Svelte one more tick to ensure videoPreviewElement is bound
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Ensure video element exists
+    if (!videoPreviewElement) {
+      console.error('Video element STILL not available after wait - DOM issue!');
+      error = 'Failed to initialize video element';
+      return;
+    }
+
+    console.log('Video element confirmed available, proceeding with camera access');
+
     try {
-      // Request webcam access from browser using browser device ID
-      // Don't constrain to specific device - just get any available camera
-      webcamStream = await navigator.mediaDevices.getUserMedia({
+      console.log('Requesting webcam access...');
+
+      // Add timeout to getUserMedia to prevent hanging
+      const getUserMediaPromise = navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
-          height: { ideal: 720 }
+          height: { ideal: 720 },
         },
-        audio: false // Don't capture audio in preview
+        audio: false, // Don't capture audio in preview
       });
 
-      if (videoPreviewElement) {
+      const timeoutPromise = new Promise<MediaStream>((_, reject) => {
+        setTimeout(() => reject(new Error('Camera access timeout after 5 seconds')), 5000);
+      });
+
+      webcamStream = await Promise.race([getUserMediaPromise, timeoutPromise]);
+
+      console.log('Webcam stream obtained, setting up video element...');
+
+      if (videoPreviewElement && webcamStream) {
         videoPreviewElement.srcObject = webcamStream;
-        videoPreviewElement.play();
+
+        // Wait for the video to be ready
+        await new Promise<void>((resolve) => {
+          const onLoadedMetadata = () => {
+            videoPreviewElement?.removeEventListener('loadedmetadata', onLoadedMetadata);
+            resolve();
+          };
+          videoPreviewElement?.addEventListener('loadedmetadata', onLoadedMetadata);
+
+          // Timeout after 2 seconds
+          setTimeout(() => {
+            videoPreviewElement?.removeEventListener('loadedmetadata', onLoadedMetadata);
+            resolve();
+          }, 2000);
+        });
+
+        // Explicitly play
+        try {
+          await videoPreviewElement.play();
+          console.log('Webcam preview started successfully');
+        } catch (playErr) {
+          console.error('Failed to play video:', playErr);
+          // Continue anyway - autoplay might be blocked but video still shows
+        }
       }
     } catch (err) {
       console.error('Failed to start webcam preview:', err);
       error = `Failed to access webcam: ${err}`;
+      // Clean up on error
+      if (webcamStream) {
+        webcamStream.getTracks().forEach((track) => track.stop());
+        webcamStream = null;
+      }
     }
   }
 
   function stopWebcamPreview() {
-    if (webcamStream) {
-      webcamStream.getTracks().forEach(track => track.stop());
-      webcamStream = null;
+    console.log('Stopping webcam preview...');
+
+    // Clear any pending starts first
+    if (previewTimeout) {
+      clearTimeout(previewTimeout);
+      previewTimeout = null;
     }
+
+    // Stop all media tracks immediately
+    if (webcamStream) {
+      const tracks = webcamStream.getTracks();
+      console.log(`Stopping ${tracks.length} media tracks...`);
+      tracks.forEach((track) => {
+        console.log(`Stopping track: ${track.kind}, state: ${track.readyState}`);
+        track.stop();
+      });
+      webcamStream = null;
+      console.log('Webcam stream cleared');
+    }
+
+    // Clear video element
     if (videoPreviewElement) {
       videoPreviewElement.srcObject = null;
+      // Force pause to ensure cleanup
+      videoPreviewElement.pause();
     }
   }
 
-  // Start webcam preview when webcam mode is selected
-  $: if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
-    if (!isRecording && !isPreparing) {
-      startWebcamPreview();
+  // Debounce preview start to prevent multiple rapid restarts
+  let previewTimeout: ReturnType<typeof setTimeout> | null = null;
+  let lastPreviewState = { type: '', camera: '', recording: false };
+
+  function schedulePreviewStart() {
+    if (previewTimeout) {
+      console.log('Clearing existing preview timeout');
+      clearTimeout(previewTimeout);
     }
-  } else {
-    stopWebcamPreview();
+    console.log('Scheduling preview start in 300ms (allowing time for DOM update)');
+    previewTimeout = setTimeout(() => {
+      console.log('Timeout fired - checking conditions...');
+      if (!isRecording && !isPreparing && !webcamStream) {
+        console.log('Starting webcam preview from scheduled timeout');
+        startWebcamPreview();
+      } else {
+        console.log('Skipping preview start:', {
+          isRecording,
+          isPreparing,
+          hasStream: !!webcamStream,
+        });
+      }
+      previewTimeout = null;
+    }, 300); // Increased to 300ms to ensure DOM is ready
   }
 
-  // Update preview when camera changes (simplified - just restart preview)
-  $: if (selectedCameraId && (recordingType === 'webcam' || recordingType === 'screen_webcam') && !isRecording && !isPreparing) {
-    // Restart preview when camera selection changes
-    startWebcamPreview();
+  // Consolidated reactive statement for webcam preview management
+  $: {
+    const needsWebcam = recordingType === 'webcam' || recordingType === 'screen_webcam';
+    const currentState = {
+      type: recordingType,
+      camera: selectedCameraId || '',
+      recording: isRecording || isPreparing,
+    };
+
+    // Check if state actually changed to prevent unnecessary updates
+    const stateChanged =
+      currentState.type !== lastPreviewState.type ||
+      currentState.camera !== lastPreviewState.camera ||
+      currentState.recording !== lastPreviewState.recording;
+
+    if (!stateChanged) {
+      // No change, skip
+    } else if (!needsWebcam) {
+      // Not in webcam mode - stop preview
+      console.log('Mode changed to non-webcam, stopping preview');
+      if (previewTimeout) {
+        clearTimeout(previewTimeout);
+        previewTimeout = null;
+      }
+      stopWebcamPreview();
+    } else if (needsWebcam && !isRecording && !isPreparing) {
+      // In webcam mode and not recording - start/restart preview
+      console.log('Webcam mode active, scheduling preview start');
+      if (currentState.camera !== lastPreviewState.camera && webcamStream) {
+        // Camera changed - stop and restart
+        console.log('Camera changed, restarting preview');
+        stopWebcamPreview();
+      }
+      schedulePreviewStart();
+    } else if (isRecording || isPreparing) {
+      // Recording started - stop preview
+      console.log('Recording/preparing, stopping preview');
+      stopWebcamPreview();
+    }
+
+    lastPreviewState = currentState;
   }
 
   async function startRecording() {
@@ -209,7 +329,7 @@
       error = `Failed to start recording: ${err}`;
       console.error(error);
       isPreparing = false;
-      
+
       // Restart preview if recording failed
       if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
         startWebcamPreview();
@@ -233,7 +353,7 @@
       isRecording = false;
       currentSession = null;
       recordingDuration = 0;
-      
+
       // Restart webcam preview after recording stops (if in webcam mode)
       if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
         startWebcamPreview();
@@ -244,7 +364,7 @@
       isRecording = false;
       currentSession = null;
       recordingDuration = 0;
-      
+
       // Restart preview even on error
       if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
         startWebcamPreview();
@@ -327,19 +447,32 @@
 
       <!-- Webcam preview -->
       <div class="section webcam-preview">
-        {#if webcamStream}
-          <!-- svelte-ignore a11y-media-has-caption -->
-          <video
-            bind:this={videoPreviewElement}
-            class="webcam-video"
-            autoplay
-            playsinline
-            muted
-          />
-        {:else}
+        <!-- Always render video element so it's available for getUserMedia -->
+        <video
+          bind:this={videoPreviewElement}
+          class="webcam-video"
+          class:hidden={!webcamStream}
+          autoplay
+          playsinline
+          muted
+        />
+        {#if !webcamStream}
           <div class="preview-placeholder">
             <p>📹 Webcam Preview</p>
-            <p class="preview-note">Requesting camera access...</p>
+            {#if error && error.includes('webcam')}
+              <p class="preview-error">{error}</p>
+              <button
+                class="retry-button"
+                on:click={() => {
+                  error = null;
+                  schedulePreviewStart();
+                }}
+              >
+                🔄 Retry
+              </button>
+            {:else}
+              <p class="preview-note">Requesting camera access...</p>
+            {/if}
           </div>
         {/if}
       </div>
@@ -360,7 +493,7 @@
           Microphone
         </label>
       </div>
-      
+
       <!-- Microphone selector -->
       {#if includeMicrophone && sources && sources.microphones.length > 0}
         <div class="microphone-selector">
@@ -546,6 +679,7 @@
 
   .webcam-preview {
     margin-top: 16px;
+    position: relative;
   }
 
   .webcam-video {
@@ -555,6 +689,11 @@
     background: #000000;
     aspect-ratio: 16/9;
     object-fit: cover;
+    display: block;
+  }
+
+  .webcam-video.hidden {
+    display: none;
   }
 
   .preview-placeholder {
@@ -583,6 +722,29 @@
   .preview-note {
     font-size: 13px;
     color: #666666;
+  }
+
+  .preview-error {
+    font-size: 12px;
+    color: #ff6666;
+    margin-bottom: 12px;
+    max-width: 300px;
+  }
+
+  .retry-button {
+    padding: 8px 16px;
+    background: #444444;
+    border: 1px solid #666666;
+    border-radius: 6px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .retry-button:hover {
+    background: #555555;
+    border-color: #888888;
   }
 
   .record-button {

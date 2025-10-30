@@ -151,7 +151,7 @@ pub async fn stop_recording(
 
     // Add clip to AppState (so it can be played back)
     let app_state = app_handle.state::<AppState>();
-    
+
     // Add to media library
     {
         let mut library = app_state.media_library.lock().unwrap();
@@ -232,7 +232,7 @@ fn start_duration_tracking(session_id: String, app_handle: AppHandle) {
 /// Create MediaClip from completed recording
 async fn create_media_clip_from_recording(
     session: &RecordingSession,
-    app_handle: &AppHandle,
+    _app_handle: &AppHandle,
 ) -> Result<crate::models::clip::MediaClip, String> {
     use crate::ffmpeg::metadata::extract_metadata;
     use crate::models::clip::MediaClip;
@@ -250,13 +250,51 @@ async fn create_media_clip_from_recording(
         .await
         .map_err(|e| format!("Failed to get metadata from recording: {}", e))?;
 
-    // Create MediaClip
+    // Generate thumbnail SYNCHRONOUSLY so it's ready immediately
+    let clip_id = uuid::Uuid::new_v4().to_string();
+    let home_dir = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+    let thumbnail_dir = home_dir.join(".clipforge").join("thumbnails");
+
+    // Create thumbnail directory
+    std::fs::create_dir_all(&thumbnail_dir)
+        .map_err(|e| format!("Failed to create thumbnail directory: {}", e))?;
+
+    let thumbnail_path = thumbnail_dir.join(format!("{}.jpg", clip_id));
+    let thumbnail_path_str = thumbnail_path.to_str().unwrap_or("").to_string();
+
+    eprintln!(
+        "[Thumbnail] Generating thumbnail synchronously for clip: {}",
+        clip_id
+    );
+    eprintln!("[Thumbnail] Source: {}", session.output_path);
+    eprintln!("[Thumbnail] Output: {}", thumbnail_path_str);
+
+    // Generate thumbnail and wait for it
+    let thumbnail_result = crate::ffmpeg::thumbnails::generate_thumbnail(
+        &session.output_path,
+        &thumbnail_path_str,
+        0.0,
+    )
+    .await;
+
+    let final_thumbnail_path = match thumbnail_result {
+        Ok(_) => {
+            eprintln!("[Thumbnail] Successfully generated thumbnail");
+            Some(thumbnail_path_str)
+        }
+        Err(e) => {
+            eprintln!("[Thumbnail] Failed to generate thumbnail: {}", e);
+            None
+        }
+    };
+
+    // Create MediaClip with thumbnail already included
     let clip = MediaClip {
-        id: uuid::Uuid::new_v4().to_string(),
+        id: clip_id,
         name: format!("Recording {}", chrono::Utc::now().format("%Y-%m-%d %H:%M")),
         source_path: session.output_path.clone(),
         proxy_path: None,
-        thumbnail_path: None,
+        thumbnail_path: final_thumbnail_path,
         duration: session.duration.unwrap_or(0.0),
         resolution: metadata.resolution,
         width: metadata.width as i32,
@@ -270,35 +308,6 @@ async fn create_media_clip_from_recording(
         imported_at: chrono::Utc::now(),
         captions: Vec::new(),
     };
-
-    // Generate thumbnail asynchronously
-    let clip_id = clip.id.clone();
-    let output_path = session.output_path.clone();
-    let app_handle_clone = app_handle.clone();
-
-    tokio::spawn(async move {
-        // Create thumbnail directory
-        let home_dir = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
-        let thumbnail_dir = home_dir.join(".clipforge").join("thumbnails");
-        std::fs::create_dir_all(&thumbnail_dir).ok();
-
-        let thumbnail_path = thumbnail_dir.join(format!("{}.jpg", clip_id));
-        let thumbnail_path_str = thumbnail_path.to_str().unwrap_or("").to_string();
-
-        if crate::ffmpeg::thumbnails::generate_thumbnail(&output_path, &thumbnail_path_str, 0.0)
-            .await
-            .is_ok()
-        {
-            // Update clip with thumbnail path
-            let _ = app_handle_clone.emit_all(
-                "thumbnail_generated",
-                json!({
-                    "clip_id": clip_id,
-                    "thumbnail_path": thumbnail_path_str
-                }),
-            );
-        }
-    });
 
     Ok(clip)
 }
