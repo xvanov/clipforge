@@ -5,26 +5,35 @@
   import type { RecordingSources, RecordingSession } from '../types/recording';
   import type { MediaClip } from '../types/clip';
   import { mediaLibrary } from '../stores/media-library';
+  import {
+    recordingStore,
+    setRecordingSources,
+    startPreparingRecording,
+    startRecordingSession,
+    updateRecordingDuration,
+    stopRecordingSession,
+    setRecordingError,
+    clearRecordingError,
+    updateRecordingConfig,
+  } from '../stores/recording';
 
-  // Recording state
-  let isRecording = false;
-  let isPreparing = false;
-  let currentSession: RecordingSession | null = null;
-  let recordingDuration = 0;
-  let error: string | null = null;
-
-  // Recording sources
-  let sources: RecordingSources | null = null;
-  let selectedScreenId: string | null = null;
-  let selectedCameraId: string | null = null;
-  let selectedMicrophoneId: string | null = null; // Add microphone selection
-  let recordingType: 'screen' | 'webcam' | 'screen_webcam' = 'screen';
-  let includeAudio = true;
-  let includeMicrophone = true;
-
-  // Settings
-  let resolution = '1920x1080';
-  let fps = 30;
+  // Subscribe to recording store - this persists across component mount/unmount
+  $: ({ 
+    isRecording, 
+    isPreparing, 
+    currentSession, 
+    recordingDuration, 
+    error,
+    sources,
+    selectedScreenId,
+    selectedCameraId,
+    selectedMicrophoneId,
+    recordingType,
+    includeAudio,
+    includeMicrophone,
+    resolution,
+    fps,
+  } = $recordingStore);
 
   // Event listeners
   let unlistenRecordingStarted: (() => void) | null = null;
@@ -47,8 +56,8 @@
       'recording_started',
       (event: { payload: { session_id: string } }) => {
         console.log('Recording started:', event.payload);
-        isRecording = true;
-        isPreparing = false;
+        // Note: The actual session will be set by startRecording()
+        // This just confirms the backend has started
       }
     );
 
@@ -56,7 +65,7 @@
       'recording_progress',
       (event: { payload: { session_id: string; duration: number } }) => {
         if (currentSession && event.payload.session_id === currentSession.id) {
-          recordingDuration = event.payload.duration;
+          updateRecordingDuration(event.payload.duration);
         }
       }
     );
@@ -94,28 +103,20 @@
       }>('request_recording_permissions', { permissions });
       console.log('Permissions:', result.granted);
     } catch (err) {
-      error = `Failed to request permissions: ${err}`;
-      console.error(error);
+      const errorMsg = `Failed to request permissions: ${err}`;
+      setRecordingError(errorMsg);
+      console.error(errorMsg);
     }
   }
 
   async function loadSources() {
     try {
-      sources = await invoke<RecordingSources>('list_recording_sources');
-
-      // Select first available sources by default
-      if (sources.screens.length > 0) {
-        selectedScreenId = sources.screens[0].id;
-      }
-      if (sources.cameras.length > 0) {
-        selectedCameraId = sources.cameras[0].id;
-      }
-      if (sources.microphones.length > 0) {
-        selectedMicrophoneId = sources.microphones[0].id;
-      }
+      const sourcesData = await invoke<RecordingSources>('list_recording_sources');
+      setRecordingSources(sourcesData);
     } catch (err) {
-      error = `Failed to load sources: ${err}`;
-      console.error(error);
+      const errorMsg = `Failed to load sources: ${err}`;
+      setRecordingError(errorMsg);
+      console.error(errorMsg);
     }
   }
 
@@ -187,7 +188,8 @@
       }
     } catch (err) {
       console.error('Failed to start webcam preview:', err);
-      error = `Failed to access webcam: ${err}`;
+      const errorMsg = `Failed to access webcam: ${err}`;
+      setRecordingError(errorMsg);
       // Clean up on error
       if (webcamStream) {
         webcamStream.getTracks().forEach((track) => track.stop());
@@ -297,8 +299,8 @@
   async function startRecording() {
     if (isRecording || isPreparing) return;
 
-    error = null;
-    isPreparing = true;
+    clearRecordingError();
+    startPreparingRecording();
 
     // CRITICAL: Stop webcam preview before starting FFmpeg recording
     // This releases the microphone and camera so FFmpeg can access them
@@ -323,12 +325,13 @@
         },
       };
 
-      currentSession = await invoke<RecordingSession>('start_recording', { config });
-      console.log('Recording session started:', currentSession);
+      const session = await invoke<RecordingSession>('start_recording', { config });
+      console.log('Recording session started:', session);
+      startRecordingSession(session);
     } catch (err) {
-      error = `Failed to start recording: ${err}`;
-      console.error(error);
-      isPreparing = false;
+      const errorMsg = `Failed to start recording: ${err}`;
+      setRecordingError(errorMsg);
+      console.error(errorMsg);
 
       // Restart preview if recording failed
       if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
@@ -349,21 +352,20 @@
       // Add clip to media library
       mediaLibrary.update((clips) => [...clips, mediaClip]);
 
-      // Reset recording state
-      isRecording = false;
-      currentSession = null;
-      recordingDuration = 0;
+      // Reset recording state in store
+      stopRecordingSession();
 
       // Restart webcam preview after recording stops (if in webcam mode)
       if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
         startWebcamPreview();
       }
     } catch (err) {
-      error = `Failed to stop recording: ${err}`;
-      console.error(error);
-      isRecording = false;
-      currentSession = null;
-      recordingDuration = 0;
+      const errorMsg = `Failed to stop recording: ${err}`;
+      setRecordingError(errorMsg);
+      console.error(errorMsg);
+      
+      // Reset state even on error
+      stopRecordingSession();
 
       // Restart preview even on error
       if (recordingType === 'webcam' || recordingType === 'screen_webcam') {
@@ -395,19 +397,19 @@
       <div class="recording-type-buttons">
         <button
           class:active={recordingType === 'screen'}
-          on:click={() => (recordingType = 'screen')}
+          on:click={() => updateRecordingConfig({ recordingType: 'screen' })}
         >
           Screen Only
         </button>
         <button
           class:active={recordingType === 'webcam'}
-          on:click={() => (recordingType = 'webcam')}
+          on:click={() => updateRecordingConfig({ recordingType: 'webcam' })}
         >
           Webcam Only
         </button>
         <button
           class:active={recordingType === 'screen_webcam'}
-          on:click={() => (recordingType = 'screen_webcam')}
+          on:click={() => updateRecordingConfig({ recordingType: 'screen_webcam' })}
         >
           Screen + Webcam
         </button>
@@ -420,7 +422,11 @@
         <label for="screen-select">
           <strong>Screen:</strong>
         </label>
-        <select id="screen-select" bind:value={selectedScreenId}>
+        <select 
+          id="screen-select" 
+          value={selectedScreenId}
+          on:change={(e) => updateRecordingConfig({ selectedScreenId: e.currentTarget.value })}
+        >
           {#each sources.screens as screen}
             <option value={screen.id}>
               {screen.name} ({screen.resolution})
@@ -436,7 +442,11 @@
         <label for="camera-select">
           <strong>Camera:</strong>
         </label>
-        <select id="camera-select" bind:value={selectedCameraId}>
+        <select 
+          id="camera-select" 
+          value={selectedCameraId}
+          on:change={(e) => updateRecordingConfig({ selectedCameraId: e.currentTarget.value })}
+        >
           {#each sources.cameras as camera}
             <option value={camera.id}>
               {camera.name}
@@ -464,7 +474,7 @@
               <button
                 class="retry-button"
                 on:click={() => {
-                  error = null;
+                  clearRecordingError();
                   schedulePreviewStart();
                 }}
               >
@@ -485,11 +495,19 @@
       </div>
       <div class="checkbox-group">
         <label>
-          <input type="checkbox" bind:checked={includeAudio} />
+          <input 
+            type="checkbox" 
+            checked={includeAudio}
+            on:change={(e) => updateRecordingConfig({ includeAudio: e.currentTarget.checked })}
+          />
           System Audio
         </label>
         <label>
-          <input type="checkbox" bind:checked={includeMicrophone} />
+          <input 
+            type="checkbox" 
+            checked={includeMicrophone}
+            on:change={(e) => updateRecordingConfig({ includeMicrophone: e.currentTarget.checked })}
+          />
           Microphone
         </label>
       </div>
@@ -500,7 +518,11 @@
           <label for="microphone-select">
             <strong>Microphone:</strong>
           </label>
-          <select id="microphone-select" bind:value={selectedMicrophoneId}>
+          <select 
+            id="microphone-select" 
+            value={selectedMicrophoneId}
+            on:change={(e) => updateRecordingConfig({ selectedMicrophoneId: e.currentTarget.value })}
+          >
             {#each sources.microphones as microphone}
               <option value={microphone.id}>
                 {microphone.name}
@@ -517,13 +539,19 @@
         <strong>Settings:</strong>
       </div>
       <div class="settings-row">
-        <select bind:value={resolution}>
+        <select 
+          value={resolution}
+          on:change={(e) => updateRecordingConfig({ resolution: e.currentTarget.value })}
+        >
           <option value="1920x1080">1080p</option>
           <option value="1280x720">720p</option>
           <option value="2560x1440">1440p</option>
           <option value="3840x2160">4K</option>
         </select>
-        <select bind:value={fps}>
+        <select 
+          value={fps}
+          on:change={(e) => updateRecordingConfig({ fps: parseInt(e.currentTarget.value) })}
+        >
           <option value={30}>30 FPS</option>
           <option value={60}>60 FPS</option>
         </select>

@@ -189,13 +189,29 @@ pub fn start_recording(
     // Determine input sources
     let has_screen = screen_source.is_some();
     let has_camera = camera_source.is_some();
-    let has_audio = !audio_sources.is_empty();
+    let has_microphone = !audio_sources.is_empty() && audio_sources.contains(&"microphone".to_string());
+
+    // Add thread queue size globally to prevent drops
+    if has_microphone {
+        ffmpeg_args.extend_from_slice(&[
+            "-thread_queue_size".to_string(),
+            "1024".to_string(),
+        ]);
+    }
 
     if has_screen {
         // Screen capture using avfoundation
-        // Use "Capture screen N" format which is more reliable than numeric indices
-        // The numeric index varies based on number of connected cameras
         let screen_idx = screen_source.unwrap_or_else(|| "Capture screen 0".to_string());
+
+        // Build input: screen with or without microphone audio
+        let input = if has_microphone {
+            // Screen + microphone: "screenName:audioIndex"
+            let audio_idx = microphone_device_id.as_deref().unwrap_or("0");
+            format!("{}:{}", screen_idx, audio_idx)
+        } else {
+            // Screen only (no audio)
+            screen_idx.clone()
+        };
 
         ffmpeg_args.extend_from_slice(&[
             "-f".to_string(),
@@ -204,34 +220,22 @@ pub fn start_recording(
             "1".to_string(),
             "-r".to_string(),
             fps.to_string(),
+            "-i".to_string(),
+            input,
         ]);
-
-        // Build input string
-        // For screen-only or screen with system audio: use screen name with optional audio
-        let input = if has_audio && audio_sources.contains(&"system".to_string()) {
-            // Screen + system audio: "screenName:audioIndex"
-            // Note: System audio capture on macOS may require additional setup (BlackHole, etc.)
-            format!("{}:none", screen_idx) // Use "none" for audio as system audio needs special handling
-        } else {
-            // Screen only (no audio): just the screen name
-            screen_idx.clone()
-        };
-
-        ffmpeg_args.extend_from_slice(&["-i".to_string(), input]);
     }
 
     if has_camera {
         // Camera capture using avfoundation
         let camera_idx = camera_source.unwrap_or_else(|| "0".to_string());
 
-        // If we want microphone audio with the camera, capture it together
-        let camera_input = if has_audio && audio_sources.contains(&"microphone".to_string()) {
-            // Camera with microphone: "cameraIndex:audioIndex"
-            // Use the specific microphone if provided, otherwise default to ":0"
+        // Build input: camera with or without microphone audio
+        let camera_input = if has_microphone && !has_screen {
+            // Camera + microphone (only if not already captured with screen)
             let audio_idx = microphone_device_id.as_deref().unwrap_or("0");
             format!("{}:{}", camera_idx, audio_idx)
         } else {
-            // Camera without audio
+            // Camera only (audio already captured with screen, or no audio)
             camera_idx.clone()
         };
 
@@ -242,18 +246,6 @@ pub fn start_recording(
             fps.to_string(),
             "-i".to_string(),
             camera_input,
-        ]);
-    }
-
-    // Add separate microphone input only for webcam-only mode without camera audio
-    if has_audio && audio_sources.contains(&"microphone".to_string()) && !has_screen && !has_camera
-    {
-        // Separate microphone input (webcam-only fallback)
-        ffmpeg_args.extend_from_slice(&[
-            "-f".to_string(),
-            "avfoundation".to_string(),
-            "-i".to_string(),
-            ":0".to_string(), // Default audio input
         ]);
     }
 
@@ -280,15 +272,15 @@ pub fn start_recording(
         "yuv420p".to_string(), // Critical: ensures web/QuickTime compatibility
     ]);
 
-    // Audio codec settings (if audio is present)
-    if has_audio {
+    // Audio codec settings (if microphone is enabled)
+    if has_microphone {
         ffmpeg_args.extend_from_slice(&[
             "-c:a".to_string(),
             "aac".to_string(),
             "-b:a".to_string(),
-            "256k".to_string(), // Increased from 192k for better audio quality
+            "192k".to_string(),
             "-ar".to_string(),
-            "48000".to_string(), // 48kHz sample rate for professional audio quality
+            "48000".to_string(), // 48kHz sample rate
         ]);
     }
 
