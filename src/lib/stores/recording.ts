@@ -8,7 +8,7 @@ export interface RecordingState {
   currentSession: RecordingSession | null;
   recordingDuration: number;
   error: string | null;
-  
+
   // Recording sources and configuration
   sources: RecordingSources | null;
   selectedScreenId: string | null;
@@ -46,7 +46,7 @@ export const recordingStore: Writable<RecordingState> = writable(initialState);
 export function setRecordingSources(sources: RecordingSources) {
   recordingStore.update((state) => {
     const newState = { ...state, sources };
-    
+
     // Auto-select first available sources if none selected
     if (!state.selectedScreenId && sources.screens.length > 0) {
       newState.selectedScreenId = sources.screens[0].id;
@@ -57,7 +57,7 @@ export function setRecordingSources(sources: RecordingSources) {
     if (!state.selectedMicrophoneId && sources.microphones.length > 0) {
       newState.selectedMicrophoneId = sources.microphones[0].id;
     }
-    
+
     return newState;
   });
 }
@@ -128,4 +128,3 @@ export function getCurrentSession(): RecordingSession | null {
 export function isCurrentlyRecording(): boolean {
   return get(recordingStore).isRecording;
 }
-

@@ -18,11 +18,11 @@
   } from '../stores/recording';
 
   // Subscribe to recording store - this persists across component mount/unmount
-  $: ({ 
-    isRecording, 
-    isPreparing, 
-    currentSession, 
-    recordingDuration, 
+  $: ({
+    isRecording,
+    isPreparing,
+    currentSession,
+    recordingDuration,
     error,
     sources,
     selectedScreenId,
@@ -363,7 +363,7 @@
       const errorMsg = `Failed to stop recording: ${err}`;
       setRecordingError(errorMsg);
       console.error(errorMsg);
-      
+
       // Reset state even on error
       stopRecordingSession();
 
@@ -422,8 +422,8 @@
         <label for="screen-select">
           <strong>Screen:</strong>
         </label>
-        <select 
-          id="screen-select" 
+        <select
+          id="screen-select"
           value={selectedScreenId}
           on:change={(e) => updateRecordingConfig({ selectedScreenId: e.currentTarget.value })}
         >
@@ -442,8 +442,8 @@
         <label for="camera-select">
           <strong>Camera:</strong>
         </label>
-        <select 
-          id="camera-select" 
+        <select
+          id="camera-select"
           value={selectedCameraId}
           on:change={(e) => updateRecordingConfig({ selectedCameraId: e.currentTarget.value })}
         >
@@ -495,16 +495,16 @@
       </div>
       <div class="checkbox-group">
         <label>
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={includeAudio}
             on:change={(e) => updateRecordingConfig({ includeAudio: e.currentTarget.checked })}
           />
           System Audio
         </label>
         <label>
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={includeMicrophone}
             on:change={(e) => updateRecordingConfig({ includeMicrophone: e.currentTarget.checked })}
           />
@@ -518,10 +518,11 @@
           <label for="microphone-select">
             <strong>Microphone:</strong>
           </label>
-          <select 
-            id="microphone-select" 
+          <select
+            id="microphone-select"
             value={selectedMicrophoneId}
-            on:change={(e) => updateRecordingConfig({ selectedMicrophoneId: e.currentTarget.value })}
+            on:change={(e) =>
+              updateRecordingConfig({ selectedMicrophoneId: e.currentTarget.value })}
           >
             {#each sources.microphones as microphone}
               <option value={microphone.id}>
@@ -539,7 +540,7 @@
         <strong>Settings:</strong>
       </div>
       <div class="settings-row">
-        <select 
+        <select
           value={resolution}
           on:change={(e) => updateRecordingConfig({ resolution: e.currentTarget.value })}
         >
@@ -548,7 +549,7 @@
           <option value="2560x1440">1440p</option>
           <option value="3840x2160">4K</option>
         </select>
-        <select 
+        <select
           value={fps}
           on:change={(e) => updateRecordingConfig({ fps: parseInt(e.currentTarget.value) })}
         >

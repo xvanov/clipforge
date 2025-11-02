@@ -189,14 +189,12 @@ pub fn start_recording(
     // Determine input sources
     let has_screen = screen_source.is_some();
     let has_camera = camera_source.is_some();
-    let has_microphone = !audio_sources.is_empty() && audio_sources.contains(&"microphone".to_string());
+    let has_microphone =
+        !audio_sources.is_empty() && audio_sources.contains(&"microphone".to_string());
 
     // Add thread queue size globally to prevent drops
     if has_microphone {
-        ffmpeg_args.extend_from_slice(&[
-            "-thread_queue_size".to_string(),
-            "1024".to_string(),
-        ]);
+        ffmpeg_args.extend_from_slice(&["-thread_queue_size".to_string(), "1024".to_string()]);
     }
 
     if has_screen {
